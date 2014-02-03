@@ -1,0 +1,29 @@
+#! /usr/bin/env python
+
+'''
+Rudimentary command line tool for Archive.  Try:
+  ./bin/archive [your-fully-qualified-relation] graph
+  ./bin/archive [your-fully-qualified-relation] stats
+  ./bin/archive [your-fully-qualified-relation] create_all_hql
+
+Where [your-fully-qualified-relation] is of the form: "my.package.module.relation".
+'''
+
+import sys
+import importlib
+
+module_member = sys.argv[1]
+command = sys.argv[2]
+
+package = str.join('.', str.split(module_member, '.')[0:-1])
+relation_name = str.split(module_member, '.')[-1]
+
+archive = importlib.import_module(package)
+relation = getattr(archive, relation_name)
+
+if command == 'stats':
+  import pprint
+  pprint.pprint(relation.stats())
+else:
+  method = getattr(relation, command)
+  print method()

@@ -1,4 +1,7 @@
 Jinja2==2.7.2
 MarkupSafe==0.18
 boto==2.24.0
+python-cjson==1.0.5
+qds-sdk==1.0.9-beta
+requests==2.2.1
 wsgiref==0.1.2

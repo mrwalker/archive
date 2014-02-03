@@ -1,4 +1,7 @@
+import os
 from jinja2 import Environment, PackageLoader
+
+from archive.hive import Hive
 
 class Relation:
   # Set this to the package that contains your archive
@@ -17,6 +20,9 @@ class Relation:
     self.database = database
     self.name = name
     self.inputs = inputs
+
+    self.hive = Hive()
+    self.hive.set_token(os.environ['QUBOLE_TOKEN'])
 
   def qualified_name(self):
     return '%s.%s' % (self.database, self.name)
@@ -94,6 +100,11 @@ class Relation:
     else:
       return 'CREATE DATABASE IF NOT EXISTS %s;' % self.database
 
+  def create_all(self):
+    query = self.create_all_hql()
+    hive_job = self.hive.run_async(query)
+    return hive_job
+
   def create_all_hql(self):
     # Used only to set view_or_table
     self.graph()
@@ -116,6 +127,11 @@ class Relation:
       )
       created.append(self)
       return all_create_hql
+
+  def drop_all(self):
+    query = self.drop_all_hql()
+    hive_job = self.hive.run_sync(query)
+    return hive_job
 
   def drop_all_hql(self):
     unique_databases = self.stats()['databases']['unique_databases']

@@ -123,7 +123,9 @@ class ExternalTable(Relation):
     return '''{super_hql}
 CREATE EXTERNAL TABLE IF NOT EXISTS {database}.{name}
 {hql}
-;'''.format(
+;
+
+ALTER TABLE `{database}.{name}` RECOVER PARTITIONS;'''.format(
       super_hql = Relation.create_hql(self, created),
       database = self.database,
       name = self.name,

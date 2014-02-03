@@ -22,11 +22,22 @@ class Relation:
     return '%s.%s' % (self.database, self.name)
 
   def graph(self):
-    return self._graph(0)
+    return self._graph({
+      'offset': 0,
+      'traversed': set(),
+    })
 
-  def _graph(self, offset):
-    input_graph = str.join('\n', [i._graph(offset + 1) for i in self.inputs]).rstrip()
-    return '%s%s\n%s' % ('\t' * offset, self.qualified_name(), input_graph)
+  def _graph(self, context):
+    if self in context['traversed']:
+      return '%s(%s)' % ('\t' * context['offset'], self.qualified_name())
+    else:
+      context['traversed'].add(self)
+      context['offset'] += 1
+      input_graph = str.join('\n', [i._graph(context) for i in self.inputs]).rstrip()
+      context['offset'] -= 1
+
+      graph_str = '%s%s\n%s' % ('\t' * context['offset'], self.qualified_name(), input_graph)
+      return graph_str
 
   def stats(self):
     stats = self._stats({
@@ -84,6 +95,8 @@ class Relation:
       return 'CREATE DATABASE IF NOT EXISTS %s;' % self.database
 
   def create_all_hql(self):
+    # Used only to set view_or_table
+    self.graph()
     return self._create_all_hql([])
 
   def _create_all_hql(self, created):
@@ -120,14 +133,29 @@ CREATE EXTERNAL TABLE IF NOT EXISTS {database}.{name}
       hql = self.hql(),
     ).strip()
 
-class Select(Relation):
+class ViewUntilTable(Relation):
+  def __init__(self, database, name, *inputs, **kwargs):
+    Relation.__init__(self, database, name, *inputs, **kwargs)
+    self.view_or_table = None
+
   def create_hql(self, created):
+    if not self.view_or_table:
+      raise RuntimeError('Create type must be determined before calling ViewUntilTable#create_hql')
+
     return '''{super_hql}
-CREATE VIEW IF NOT EXISTS {database}.{name} AS
+CREATE {view_or_table} IF NOT EXISTS {database}.{name} AS
 {hql}
 ;'''.format(
       super_hql = Relation.create_hql(self, created),
+      view_or_table = self.view_or_table,
       database = self.database,
       name = self.name,
       hql = self.hql(),
     ).strip()
+
+  def _graph(self, context):
+    if self in context['traversed']:
+      self.view_or_table = 'TABLE'
+    else:
+      self.view_or_table = 'VIEW'
+    return Relation._graph(self, context)

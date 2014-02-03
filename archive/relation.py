@@ -1,28 +1,9 @@
-import os
-from jinja2 import Environment, PackageLoader
-
-from archive.hive import Hive
-
 class Relation:
-  # Set this to the package that contains your archive
-  JINJA_PACKAGE = None
-
-  def __init__(self, database, name, *inputs, **kwargs):
-    self.package = self.JINJA_PACKAGE
-    self.template = '%s.hql' % name
-
-    templates = kwargs.get('templates', 'templates')
-    self.env = Environment(loader = PackageLoader(
-      self.package,
-      templates
-    ))
-
+  def __init__(self, database, name, *inputs):
     self.database = database
     self.name = name
+    self.template = '%s.hql' % self.name
     self.inputs = inputs
-
-    self.hive = Hive()
-    self.hive.set_token(os.environ['QUBOLE_TOKEN'])
 
   def qualified_name(self):
     return '%s.%s' % (self.database, self.name)

@@ -16,6 +16,9 @@ class Archive:
     self.hive = hive
     self.relations = {}
 
+  def lookup(self, relation_name):
+    return self.relations[relation_name]
+
   def add(self, relation):
     if relation.name in self.relations:
       raise RuntimeError("Relations must have unique names; Archive already contains relation '%s'" % relation.name)

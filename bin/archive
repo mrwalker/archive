@@ -2,24 +2,25 @@
 
 '''
 Rudimentary command line tool for Archive.  Try:
-  ./bin/archive [your-fully-qualified-relation] graph
-  ./bin/archive [your-fully-qualified-relation] stats
-  ./bin/archive [your-fully-qualified-relation] create_all_hql
+  ./bin/archive [your-archive-module] [your-relation] graph
+  ./bin/archive [your-archive-module] [your-relation] stats
+  ./bin/archive [your-archive-module] [your-relation] hql
+  ./bin/archive [your-archive-module] [your-relation] create_all_hql
 
-Where [your-fully-qualified-relation] is of the form: "my.package.module.relation".
+Where [your-archive-module] is of the form: "my.package.module" and
+[your-relation] is the unqualified name of the relation you want to operate on.
 '''
 
 import sys
 import importlib
 
-module_member = sys.argv[1]
-command = sys.argv[2]
+archive_module = sys.argv[1]
+relation_name = sys.argv[2]
+command = sys.argv[3]
 
-package = str.join('.', str.split(module_member, '.')[0:-1])
-relation_name = str.split(module_member, '.')[-1]
-
-archive = importlib.import_module(package)
-relation = getattr(archive, relation_name)
+archive_module = importlib.import_module(archive_module)
+archive = getattr(archive_module, 'archive')
+relation = archive.lookup(relation_name)
 
 if command == 'stats':
   import pprint

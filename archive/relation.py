@@ -158,3 +158,12 @@ CREATE {view_or_table} IF NOT EXISTS {database}.{name} AS
     else:
       self.view_or_table = 'VIEW'
     return Relation._graph(self, context)
+
+class Select(Relation):
+  def create_hql(self, created):
+    return '''{super_hql}
+{hql}
+;'''.format(
+      super_hql = Relation.create_hql(self, created),
+      hql = self.hql(),
+    ).strip()

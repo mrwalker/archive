@@ -160,10 +160,8 @@ CREATE {view_or_table} IF NOT EXISTS {database}.{name} AS
     graph_str = Relation._graph(self, context)
 
     if context['references'][self.name] >= self.table_threshold:
-      print "Setting table at %s" % context['references'][self.name]
       self.view_or_table = 'TABLE'
     else:
-      print "Setting view at %s" % context['references'][self.name]
       self.view_or_table = 'VIEW'
 
     return graph_str

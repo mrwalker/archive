@@ -11,14 +11,17 @@ class Relation:
   def graph(self):
     return self._graph({
       'offset': 0,
-      'traversed': set(),
+      'references': {},
     })
 
   def _graph(self, context):
-    if self in context['traversed']:
+    if not context['references'].has_key(self.name):
+      context['references'][self.name] = 0
+    context['references'][self.name] += 1
+
+    if context['references'][self.name] > 1:
       return '%s(%s)' % ('\t' * context['offset'], self.qualified_name())
     else:
-      context['traversed'].add(self)
       context['offset'] += 1
       input_graph = str.join('\n', [i._graph(context) for i in self.inputs]).rstrip()
       context['offset'] -= 1
@@ -136,6 +139,7 @@ class ViewUntilTable(Relation):
   def __init__(self, database, name, *inputs, **kwargs):
     Relation.__init__(self, database, name, *inputs, **kwargs)
     self.view_or_table = None
+    self.table_threshold = 3
 
   def create_hql(self, created):
     if not self.view_or_table:
@@ -153,11 +157,16 @@ CREATE {view_or_table} IF NOT EXISTS {database}.{name} AS
     ).strip()
 
   def _graph(self, context):
-    if self in context['traversed']:
+    graph_str = Relation._graph(self, context)
+
+    if context['references'][self.name] >= self.table_threshold:
+      print "Setting table at %s" % context['references'][self.name]
       self.view_or_table = 'TABLE'
     else:
+      print "Setting view at %s" % context['references'][self.name]
       self.view_or_table = 'VIEW'
-    return Relation._graph(self, context)
+
+    return graph_str
 
 class Select(Relation):
   def create_hql(self, created):

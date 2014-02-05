@@ -2,29 +2,40 @@
 
 '''
 Rudimentary command line tool for Archive.  Try:
-  ./bin/archive [your-archive-module] [your-relation] graph
-  ./bin/archive [your-archive-module] [your-relation] stats
-  ./bin/archive [your-archive-module] [your-relation] hql
-  ./bin/archive [your-archive-module] [your-relation] create_all_hql
+  ./bin/archive <your-archive-module> [your-relation] graph
+  ./bin/archive <your-archive-module> [your-relation] stats
+  ./bin/archive <your-archive-module> [your-relation] hql
+  ./bin/archive <your-archive-module> [your-relation] create_all_hql
 
-Where [your-archive-module] is of the form: "my.package.module" and
+Where <your-archive-module> is of the form: "my.package.module" and
 [your-relation] is the unqualified name of the relation you want to operate on.
 '''
 
 import sys
 import importlib
 
-archive_module = sys.argv[1]
-relation_name = sys.argv[2]
-command = sys.argv[3]
+if len(sys.argv) == 3:
+  archive_module = sys.argv[1]
+  relation_name = None
+  command = sys.argv[2]
+elif len(sys.argv) == 4:
+  archive_module = sys.argv[1]
+  relation_name = sys.argv[2]
+  command = sys.argv[3]
+else:
+  raise RuntimeError('Usage: archive <your-archive-module> [your-relation] <command>')
 
 archive_module = importlib.import_module(archive_module)
 archive = getattr(archive_module, 'archive')
-relation = archive.lookup(relation_name)
+
+if relation_name:
+  archive_or_relation = archive.lookup(relation_name)
+else:
+  archive_or_relation = archive
 
 if command == 'stats':
   import pprint
-  pprint.pprint(relation.stats())
+  pprint.pprint(archive_or_relation.stats())
 else:
-  method = getattr(relation, command)
+  method = getattr(archive_or_relation, command)
   print method()

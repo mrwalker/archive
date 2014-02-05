@@ -41,3 +41,54 @@ class Archive:
 
     for i in relation.inputs:
       self._validate(i)
+
+  def graph(self):
+    context = {
+      'offset': 0,
+      'references': {},
+    }
+
+    graph_str = 'Archive: %s' % self.package
+    for r in self.relations.values():
+      graph_str += '\n%s' % r._graph(context)
+
+    return graph_str
+
+  def stats(self):
+    stats = {
+      'archive': {
+        'depth': 0,
+        'current_depth': 0,
+      },
+      'databases': {
+        'unique_databases': set(),
+        'references': {},
+      },
+      'relations': {
+        'unique_relations': set(),
+        'references': {},
+      }
+    }
+    for r in self.relations.values():
+      r._stats(stats)
+
+    stats['archive']['databases'] = len(stats['databases']['unique_databases'])
+    stats['archive']['relations'] = len(stats['relations']['unique_relations'])
+    stats['archive'].pop('current_depth', None)
+    return stats
+
+  def create_all(self):
+    query = self.create_all_hql()
+    hive_job = self.hive.run_async(query)
+    return hive_job
+
+  def create_all_hql(self):
+    # Used only to set view_or_table
+    self.graph()
+    created = []
+
+    all_create_hql = '-- Archive-generated HQL for Archive: %s\n' % self.package
+    for r in self.relations.values():
+      all_create_hql += r._create_all_hql(created)
+
+    return all_create_hql

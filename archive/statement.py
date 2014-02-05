@@ -8,7 +8,7 @@ class InsertOverwrite:
   def graph(self):
     return self._graph({
       'offset': 0,
-      'traversed': set(),
+      'references': {},
     })
 
   def _graph(self, context):
@@ -74,9 +74,7 @@ class InsertOverwrite:
 
   def create_all_hql(self):
     # Used only to set view_or_table
-    for i in self.inputs:
-      i.graph()
-    self.external_table.graph()
+    self.graph()
     return self._create_all_hql([])
 
   def _create_all_hql(self, created):

@@ -25,6 +25,7 @@ elif len(sys.argv) == 4:
 else:
   raise RuntimeError('Usage: archive <your-archive-module> [your-relation] <command>')
 
+sys.path.extend(['.', 'archive'])
 archive_module = importlib.import_module(archive_module)
 archive = getattr(archive_module, 'archive')
 

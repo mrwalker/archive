@@ -26,8 +26,7 @@ class Archive:
     self.validate(relation)
 
     self.relations[relation.name] = relation
-    relation.env = self.env
-    relation.hive = self.hive
+    relation.archive = self
 
     return relation
 

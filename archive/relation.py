@@ -73,7 +73,7 @@ class Relation:
     return stats
 
   def hql(self):
-    template = self.env.get_template(self.template)
+    template = self.archive.env.get_template(self.template)
     inputs = dict([(i.name, i.qualified_name()) for i in self.inputs])
     return template.render(inputs = inputs)
 
@@ -86,7 +86,7 @@ class Relation:
 
   def create_all(self):
     query = self.create_all_hql()
-    hive_job = self.hive.run_async(query)
+    hive_job = self.archive.hive.run_async(query)
     return hive_job
 
   def create_all_hql(self):
@@ -114,7 +114,7 @@ class Relation:
 
   def drop_all(self):
     query = self.drop_all_hql()
-    hive_job = self.hive.run_sync(query)
+    hive_job = self.archive.hive.run_sync(query)
     return hive_job
 
   def drop_all_hql(self):

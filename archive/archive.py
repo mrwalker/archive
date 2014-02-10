@@ -2,7 +2,7 @@ from jinja2 import Environment, PackageLoader
 
 class Archive:
   '''
-  An Archive is a container for the relations that make up your Hive.
+  An Archive is a container for the queries that make up your Hive.
   '''
 
   def __init__(self, package, hive, templates = 'templates'):
@@ -14,31 +14,31 @@ class Archive:
     ))
 
     self.hive = hive
-    self.relations = {}
+    self.queries = {}
 
-  def lookup(self, relation_name):
-    return self.relations[relation_name]
+  def lookup(self, query_name):
+    return self.queries[query_name]
 
-  def add(self, relation):
-    if relation.name in self.relations:
-      raise RuntimeError("Relations must have unique names; Archive already contains relation '%s'" % relation.name)
+  def add(self, query):
+    if query.name in self.queries:
+      raise RuntimeError("Queries must have unique names; Archive already contains query '%s'" % query.name)
 
-    self.validate(relation)
+    self.validate(query)
 
-    self.relations[relation.name] = relation
-    relation.archive = self
+    self.queries[query.name] = query
+    query.archive = self
 
-    return relation
+    return query
 
-  def validate(self, relation):
-    for i in relation.inputs:
+  def validate(self, query):
+    for i in query.inputs:
       self._validate(i)
 
-  def _validate(self, relation):
-    if relation.name not in self.relations:
-      raise RuntimeError("Relation '%s' not in Archive; did you forget to add it?\nCurrently archived: %s" % (relation.name, self.relations))
+  def _validate(self, query):
+    if query.name not in self.queries:
+      raise RuntimeError("Query '%s' not in Archive; did you forget to add it?\nCurrently archived: %s" % (query.name, self.queries))
 
-    for i in relation.inputs:
+    for i in query.inputs:
       self._validate(i)
 
   def graph(self):
@@ -48,7 +48,7 @@ class Archive:
     }
 
     graph_str = 'Archive: %s' % self.package
-    for r in self.relations.values():
+    for r in self.queries.values():
       graph_str += '\n%s' % r._graph(context)
 
     return graph_str
@@ -63,16 +63,16 @@ class Archive:
         'unique_databases': set(),
         'references': {},
       },
-      'relations': {
-        'unique_relations': set(),
+      'queries': {
+        'unique_queries': set(),
         'references': {},
       }
     }
-    for r in self.relations.values():
+    for r in self.queries.values():
       r._stats(stats)
 
     stats['archive']['databases'] = len(stats['databases']['unique_databases'])
-    stats['archive']['relations'] = len(stats['relations']['unique_relations'])
+    stats['archive']['queries'] = len(stats['queries']['unique_queries'])
     stats['archive'].pop('current_depth', None)
     return stats
 
@@ -87,7 +87,7 @@ class Archive:
     created = []
 
     all_create_hql = '-- Archive-generated HQL for Archive: %s\n' % self.package
-    for r in self.relations.values():
+    for r in self.queries.values():
       all_create_hql += r._create_all_hql(created)
 
     return all_create_hql

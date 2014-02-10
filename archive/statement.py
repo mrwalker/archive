@@ -1,15 +1,9 @@
-class InsertOverwrite:
+from query import Query
+
+class InsertOverwrite(Query):
   def __init__(self, name, external_table, *inputs):
     self.external_table = external_table
-    self.name = name
-    self.template = '%s.hql' % self.name
-    self.inputs = inputs
-
-  def graph(self):
-    return self._graph({
-      'offset': 0,
-      'references': {},
-    })
+    Query.__init__(self, name, *inputs)
 
   def _graph(self, context):
     context['offset'] += 1
@@ -19,26 +13,6 @@ class InsertOverwrite:
 
     graph_str = '%s%s\n%s\n%s' % ('\t' * context['offset'], self.name, input_graph, external_table_graph)
     return graph_str
-
-  def stats(self):
-    stats = self._stats({
-      'archive': {
-        'depth': 0,
-        'current_depth': 0,
-      },
-      'databases': {
-        'unique_databases': set(),
-        'references': {},
-      },
-      'relations': {
-        'unique_relations': set(),
-        'references': {},
-      }
-    })
-    stats['archive']['databases'] = len(stats['databases']['unique_databases'])
-    stats['archive']['relations'] = len(stats['relations']['unique_relations'])
-    stats['archive'].pop('current_depth', None)
-    return stats
 
   def _stats(self, stats):
     stats['archive']['current_depth'] += 1
@@ -53,11 +27,6 @@ class InsertOverwrite:
     stats['archive']['current_depth'] -= 1
     return stats
 
-  def hql(self):
-    template = self.archive.env.get_template(self.template)
-    inputs = dict([(i.name, i.qualified_name()) for i in self.inputs])
-    return template.render(inputs = inputs)
-
   def create_hql(self, created):
     return '''INSERT OVERWRITE TABLE {database}.{name}
 {hql}
@@ -66,16 +35,6 @@ class InsertOverwrite:
       name = self.external_table.name,
       hql = self.hql(),
     ).strip()
-
-  def create_all(self):
-    query = self.create_all_hql()
-    hive_job = self.archive.hive.run_async(query)
-    return hive_job
-
-  def create_all_hql(self):
-    # Used only to set view_or_table
-    self.graph()
-    return self._create_all_hql([])
 
   def _create_all_hql(self, created):
     inputs_create_hql = str.join('\n', [i._create_all_hql(created) for i in self.inputs]).strip()
@@ -93,12 +52,3 @@ class InsertOverwrite:
       create_hql = self.create_hql(created),
     )
     return all_create_hql
-
-  def drop_all(self):
-    query = self.drop_all_hql()
-    hive_job = self.archive.hive.run_sync(query)
-    return hive_job
-
-  def drop_all_hql(self):
-    unique_databases = self.stats()['databases']['unique_databases']
-    return str.join('\n', ['DROP DATABASE IF EXISTS %s CASCADE;' % d for d in unique_databases])

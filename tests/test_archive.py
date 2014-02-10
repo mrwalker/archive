@@ -52,10 +52,10 @@ class TestArchive:
     stats = self.archive.stats()
     assert_equal(1, stats['archive']['databases'])
     assert_equal(1, stats['archive']['depth'])
-    assert_equal(1, stats['archive']['relations'])
+    assert_equal(1, stats['archive']['queries'])
 
     assert_equal(1, stats['databases']['references']['atomic'])
     assert_equal(set(['atomic']), stats['databases']['unique_databases'])
 
-    assert_equal(1, stats['relations']['references']['events'])
-    assert_equal(set(['events']), stats['relations']['unique_relations'])
+    assert_equal(1, stats['queries']['references']['events'])
+    assert_equal(set(['events']), stats['queries']['unique_queries'])

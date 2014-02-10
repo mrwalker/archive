@@ -1,18 +1,12 @@
-class Relation:
+from query import Query
+
+class Relation(Query):
   def __init__(self, database, name, *inputs):
     self.database = database
-    self.name = name
-    self.template = '%s.hql' % self.name
-    self.inputs = inputs
+    Query.__init__(self, name, *inputs)
 
   def qualified_name(self):
     return '%s.%s' % (self.database, self.name)
-
-  def graph(self):
-    return self._graph({
-      'offset': 0,
-      'references': {},
-    })
 
   def _graph(self, context):
     if not context['references'].has_key(self.name):
@@ -29,26 +23,6 @@ class Relation:
       graph_str = '%s%s\n%s' % ('\t' * context['offset'], self.qualified_name(), input_graph)
       return graph_str
 
-  def stats(self):
-    stats = self._stats({
-      'archive': {
-        'depth': 0,
-        'current_depth': 0,
-      },
-      'databases': {
-        'unique_databases': set(),
-        'references': {},
-      },
-      'relations': {
-        'unique_relations': set(),
-        'references': {},
-      }
-    })
-    stats['archive']['databases'] = len(stats['databases']['unique_databases'])
-    stats['archive']['relations'] = len(stats['relations']['unique_relations'])
-    stats['archive'].pop('current_depth', None)
-    return stats
-
   def _stats(self, stats):
     stats['archive']['current_depth'] += 1
     stats['archive']['depth'] = max(
@@ -61,10 +35,10 @@ class Relation:
       stats['databases']['references'][self.database] = 0
     stats['databases']['references'][self.database] += 1
 
-    stats['relations']['unique_relations'].add(self.name)
-    if not stats['relations']['references'].has_key(self.name):
-      stats['relations']['references'][self.name] = 0
-    stats['relations']['references'][self.name] += 1
+    stats['queries']['unique_queries'].add(self.name)
+    if not stats['queries']['references'].has_key(self.name):
+      stats['queries']['references'][self.name] = 0
+    stats['queries']['references'][self.name] += 1
 
     for i in self.inputs:
       i._stats(stats)
@@ -72,27 +46,12 @@ class Relation:
     stats['archive']['current_depth'] -= 1
     return stats
 
-  def hql(self):
-    template = self.archive.env.get_template(self.template)
-    inputs = dict([(i.name, i.qualified_name()) for i in self.inputs])
-    return template.render(inputs = inputs)
-
   def create_hql(self, created):
     created_databases = set([c.database for c in created])
     if self.database in created_databases:
       return ''
     else:
       return 'CREATE DATABASE IF NOT EXISTS %s;' % self.database
-
-  def create_all(self):
-    query = self.create_all_hql()
-    hive_job = self.archive.hive.run_async(query)
-    return hive_job
-
-  def create_all_hql(self):
-    # Used only to set view_or_table
-    self.graph()
-    return self._create_all_hql([])
 
   def _create_all_hql(self, created):
     if self in created:
@@ -111,15 +70,6 @@ class Relation:
       )
       created.append(self)
       return all_create_hql
-
-  def drop_all(self):
-    query = self.drop_all_hql()
-    hive_job = self.archive.hive.run_sync(query)
-    return hive_job
-
-  def drop_all_hql(self):
-    unique_databases = self.stats()['databases']['unique_databases']
-    return str.join('\n', ['DROP DATABASE IF EXISTS %s CASCADE;' % d for d in unique_databases])
 
 class ExternalTable(Relation):
   def create_hql(self, created):

@@ -1,9 +1,9 @@
 from query import Query
 
 class Relation(Query):
-  def __init__(self, database, name, *inputs):
+  def __init__(self, database, name, *inputs, **kwargs):
     self.database = database
-    Query.__init__(self, name, *inputs)
+    Query.__init__(self, name, *inputs, **kwargs)
 
   def qualified_name(self):
     return '%s.%s' % (self.database, self.name)
@@ -72,17 +72,33 @@ class Relation(Query):
       return all_create_hql
 
 class ExternalTable(Relation):
+  def __init__(self, database, name, *inputs, **kwargs):
+    Relation.__init__(self, database, name, *inputs, **kwargs)
+    self.partitioned = kwargs.get('partitioned', False)
+
+  def _recover_partitions(self):
+    if self.partitioned:
+      return 'ALTER TABLE `{database}.{name}` RECOVER PARTITIONS;'.format(
+        database = self.database,
+        name = self.name,
+      )
+    else:
+      return ''
+
   def create_hql(self, created):
-    return '''{super_hql}
+    return '''
+{super_hql}
 CREATE EXTERNAL TABLE IF NOT EXISTS {database}.{name}
 {hql}
 ;
 
-ALTER TABLE `{database}.{name}` RECOVER PARTITIONS;'''.format(
+{recover_partitions}
+'''.format(
       super_hql = Relation.create_hql(self, created),
       database = self.database,
       name = self.name,
       hql = self.hql(),
+      recover_partitions = self._recover_partitions()
     ).strip()
 
 class ViewUntilTable(Relation):

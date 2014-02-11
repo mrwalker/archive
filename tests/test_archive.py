@@ -9,7 +9,8 @@ class TestArchive:
     self.archive = Archive('tests', Hive())
     self.events = ExternalTable(
       'atomic',
-      'events'
+      'events',
+      partitioned = True
     )
 
   def test_lookup(self):

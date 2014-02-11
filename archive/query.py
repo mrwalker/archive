@@ -3,7 +3,7 @@ class Query:
   Archive's notion of a Hive query, Queries form the nodes of the DAG managed by Archive.
   '''
 
-  def __init__(self, name, *inputs):
+  def __init__(self, name, *inputs, **kwargs):
     self.name = name
     self.template = '%s.hql' % self.name
     self.inputs = inputs

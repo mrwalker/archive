@@ -1,9 +1,9 @@
 from query import Query
 
 class InsertOverwrite(Query):
-  def __init__(self, name, external_table, *inputs):
+  def __init__(self, name, external_table, *inputs, **kwargs):
     self.external_table = external_table
-    Query.__init__(self, name, *inputs)
+    Query.__init__(self, name, *inputs, **kwargs)
 
   def _graph(self, context):
     context['offset'] += 1

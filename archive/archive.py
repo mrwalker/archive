@@ -1,6 +1,8 @@
 from jinja2 import Environment, PackageLoader
 
-class Archive:
+from workflow import Workflow
+
+class Archive(Workflow):
   '''
   An Archive is a container for the queries that make up your Hive.
   '''
@@ -91,12 +93,3 @@ class Archive:
       all_create_hql += r._create_all_hql(created)
 
     return all_create_hql
-
-  def drop_all(self):
-    query = self.drop_all_hql()
-    hive_job = self.hive.run_sync(query)
-    return hive_job
-
-  def drop_all_hql(self):
-    unique_databases = self.stats()['databases']['unique_databases']
-    return str.join('\n', ['DROP DATABASE IF EXISTS %s CASCADE;' % d for d in unique_databases])

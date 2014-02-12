@@ -1,4 +1,6 @@
-class Query:
+from workflow import Workflow
+
+class Query(Workflow):
   '''
   Archive's notion of a Hive query, Queries form the nodes of the DAG managed by Archive.
   '''
@@ -48,12 +50,3 @@ class Query:
     # Used only to set view_or_table
     self.graph()
     return self._create_all_hql([])
-
-  def drop_all(self):
-    query = self.drop_all_hql()
-    hive_job = self.archive.hive.run_sync(query)
-    return hive_job
-
-  def drop_all_hql(self):
-    unique_databases = self.stats()['databases']['unique_databases']
-    return str.join('\n', ['DROP DATABASE IF EXISTS %s CASCADE;' % d for d in unique_databases])

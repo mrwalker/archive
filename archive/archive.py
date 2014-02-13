@@ -84,7 +84,7 @@ class Archive(Workflow):
     return hive_job
 
   def develop_hql(self):
-    return self.create_all_hql(views_only = True)
+    return self._create_all_hql(views_only = True)
 
   def build(self):
     query = self.build_hql()
@@ -92,15 +92,15 @@ class Archive(Workflow):
     return hive_job
 
   def build_hql(self):
-    return self.create_all_hql(views_only = False)
+    return self._create_all_hql(views_only = False)
 
-  def create_all_hql(self, views_only = False):
+  def _create_all_hql(self, views_only = False):
     # Used only to set view_or_table
     self.graph(views_only = views_only)
     created = []
 
     all_create_hql = '-- Archive-generated HQL for Archive: %s\n' % self.package
     for r in self.queries.values():
-      all_create_hql += r._create_all_hql(created)
+      all_create_hql += r._create_sub_hql(created)
 
     return all_create_hql

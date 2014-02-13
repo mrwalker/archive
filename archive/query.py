@@ -47,7 +47,7 @@ class Query(Workflow):
     return hive_job
 
   def develop_hql(self):
-    return self.create_all_hql(views_only = True)
+    return self._create_all_hql(views_only = True)
 
   def build(self):
     query = self.build_hql()
@@ -55,9 +55,9 @@ class Query(Workflow):
     return hive_job
 
   def build_hql(self):
-    return self.create_all_hql(views_only = False)
+    return self._create_all_hql(views_only = False)
 
-  def create_all_hql(self, views_only = False):
+  def _create_all_hql(self, views_only = False):
     # Used only to set view_or_table
     self.graph(views_only = views_only)
-    return self._create_all_hql([])
+    return self._create_sub_hql([])

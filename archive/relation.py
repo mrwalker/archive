@@ -53,11 +53,11 @@ class Relation(Query):
     else:
       return 'CREATE DATABASE IF NOT EXISTS %s;' % self.database
 
-  def _create_all_hql(self, created):
+  def _create_sub_hql(self, created):
     if self in created:
       return ''
     else:
-      inputs_create_hql = str.join('\n', [i._create_all_hql(created) for i in self.inputs]).strip()
+      inputs_create_hql = str.join('\n', [i._create_sub_hql(created) for i in self.inputs]).strip()
       all_create_hql = """{inputs_create_hql}
 
 -- Archive-generated HQL for: {qualified_name}

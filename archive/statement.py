@@ -36,8 +36,8 @@ class InsertOverwrite(Query):
       hql = self.hql(),
     ).strip()
 
-  def _create_all_hql(self, created):
-    inputs_create_hql = str.join('\n', [i._create_all_hql(created) for i in self.inputs]).strip()
+  def _create_sub_hql(self, created):
+    inputs_create_hql = str.join('\n', [i._create_sub_hql(created) for i in self.inputs]).strip()
     all_create_hql = """{inputs_create_hql}
 
 {external_table_create_hql}

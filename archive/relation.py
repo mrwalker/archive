@@ -8,7 +8,7 @@ class Relation(Query):
   def qualified_name(self):
     return '%s.%s' % (self.database, self.name)
 
-  def _graph(self, context):
+  def _graph(self, context, views_only):
     if not context['references'].has_key(self.name):
       context['references'][self.name] = 0
     context['references'][self.name] += 1
@@ -17,7 +17,7 @@ class Relation(Query):
       return '%s(%s)' % ('\t' * context['offset'], self.qualified_name())
     else:
       context['offset'] += 1
-      input_graph = str.join('\n', [i._graph(context) for i in self.inputs]).rstrip()
+      input_graph = str.join('\n', [i._graph(context, views_only) for i in self.inputs]).rstrip()
       context['offset'] -= 1
 
       graph_str = '%s%s\n%s' % ('\t' * context['offset'], self.qualified_name(), input_graph)
@@ -122,10 +122,10 @@ CREATE {view_or_table} IF NOT EXISTS {database}.{name} AS
       hql = self.hql(),
     ).strip()
 
-  def _graph(self, context):
-    graph_str = Relation._graph(self, context)
+  def _graph(self, context, views_only):
+    graph_str = Relation._graph(self, context, views_only)
 
-    if context['references'][self.name] >= self.table_threshold:
+    if not views_only and context['references'][self.name] >= self.table_threshold:
       self.view_or_table = 'TABLE'
     else:
       self.view_or_table = 'VIEW'

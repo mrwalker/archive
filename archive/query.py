@@ -10,11 +10,11 @@ class Query(Workflow):
     self.template = '%s.hql' % self.name
     self.inputs = inputs
 
-  def graph(self):
+  def graph(self, views_only = False):
     return self._graph({
       'offset': 0,
       'references': {},
-    })
+    }, views_only)
 
   def stats(self):
     stats = self._stats({
@@ -41,12 +41,23 @@ class Query(Workflow):
     inputs = dict([(i.name, i.qualified_name()) for i in self.inputs])
     return template.render(inputs = inputs)
 
-  def create_all(self):
-    query = self.create_all_hql()
+  def develop(self):
+    query = self.develop_hql()
+    hive_job = self.archive.hive.run_sync(query)
+    return hive_job
+
+  def develop_hql(self):
+    return self.create_all_hql(views_only = True)
+
+  def build(self):
+    query = self.build_hql()
     hive_job = self.archive.hive.run_async(query)
     return hive_job
 
-  def create_all_hql(self):
+  def build_hql(self):
+    return self.create_all_hql(views_only = False)
+
+  def create_all_hql(self, views_only = False):
     # Used only to set view_or_table
-    self.graph()
+    self.graph(views_only = views_only)
     return self._create_all_hql([])

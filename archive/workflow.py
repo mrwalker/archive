@@ -30,10 +30,10 @@ class Workflow:
     drop everything and use build to optimize some views into tables prior to
     scheduling refreshes and runs.
     '''
-    pass
+    raise RuntimeError('Implemented in subclasses')
 
   def develop_hql(self):
-    pass
+    raise RuntimeError('Implemented in subclasses')
 
   def build(self):
     '''
@@ -41,10 +41,10 @@ class Workflow:
     recovered.  Relations are created and some are optimized as tables.  If
     tables or views already exist, this will fail.
     '''
-    pass
+    raise RuntimeError('Implemented in subclasses')
 
   def build_hql(self):
-    pass
+    raise RuntimeError('Implemented in subclasses')
 
   def refresh(self):
     '''

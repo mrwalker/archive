@@ -43,7 +43,7 @@ class Archive(Workflow):
     for i in query.inputs:
       self._validate(i)
 
-  def graph(self):
+  def graph(self, views_only = False):
     context = {
       'offset': 0,
       'references': {},
@@ -51,7 +51,7 @@ class Archive(Workflow):
 
     graph_str = 'Archive: %s' % self.package
     for r in self.queries.values():
-      graph_str += '\n%s' % r._graph(context)
+      graph_str += '\n%s' % r._graph(context, views_only)
 
     return graph_str
 
@@ -78,14 +78,25 @@ class Archive(Workflow):
     stats['archive'].pop('current_depth', None)
     return stats
 
-  def create_all(self):
-    query = self.create_all_hql()
-    hive_job = self.hive.run_async(query)
+  def develop(self):
+    query = self.develop_hql()
+    hive_job = self.archive.hive.run_sync(query)
     return hive_job
 
-  def create_all_hql(self):
+  def develop_hql(self):
+    return self.create_all_hql(views_only = True)
+
+  def build(self):
+    query = self.build_hql()
+    hive_job = self.archive.hive.run_async(query)
+    return hive_job
+
+  def build_hql(self):
+    return self.create_all_hql(views_only = False)
+
+  def create_all_hql(self, views_only = False):
     # Used only to set view_or_table
-    self.graph()
+    self.graph(views_only = views_only)
     created = []
 
     all_create_hql = '-- Archive-generated HQL for Archive: %s\n' % self.package

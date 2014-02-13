@@ -55,10 +55,10 @@ class Workflow:
     Views are not recreated, so schema changes are not supported unless you
     manually drop modified views.
     '''
-    pass
+    raise RuntimeError('Implemented in subclasses')
 
   def refresh_hql(self):
-    pass
+    raise RuntimeError('Implemented in subclasses')
 
   def run(self):
     '''

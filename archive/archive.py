@@ -104,3 +104,21 @@ class Archive(Workflow):
       all_create_hql += r._create_sub_hql(created)
 
     return all_create_hql
+
+  def refresh(self):
+    query = self.refresh_hql()
+    hive_job = self.hive.run_async(query)
+    return hive_job
+
+  def refresh_hql(self):
+    # Used only to set view_or_table
+    self.graph(views_only = False)
+
+    # Look for tables
+    tables = [t for t in self.queries.values() if hasattr(t, 'view_or_table') and t.view_or_table == 'TABLE']
+
+    # Drop them
+    drop_table_hql = str.join('\n', ['DROP TABLE %s;' % t.qualified_name() for t in tables])
+
+    # Drop tables and re-build the Hive
+    return '%s\n%s' % (drop_table_hql, self.build_hql())

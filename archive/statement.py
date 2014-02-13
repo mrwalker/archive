@@ -42,17 +42,18 @@ INSERT OVERWRITE TABLE {database}.{name}
 
   def _create_sub_hql(self, created):
     inputs_create_hql = str.join('\n', [i._create_sub_hql(created) for i in self.inputs]).strip()
-    all_create_hql = """{inputs_create_hql}
+    all_create_hql = """
+{inputs_create_hql}
 
 {external_table_create_hql}
 
 -- Archive-generated HQL for insert overwrite into: {qualified_name}
--- Created: {created_qualified_names}
-{create_hql}""".format(
+{create_hql}
+""".format(
       inputs_create_hql = inputs_create_hql,
       external_table_create_hql = self.external_table._create_hql(created),
       qualified_name = self.external_table.qualified_name(),
       created_qualified_names = [c.qualified_name() for c in created],
       create_hql = self._create_hql(created),
-    )
+    ).strip()
     return all_create_hql

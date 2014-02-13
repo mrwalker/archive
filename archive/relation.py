@@ -67,16 +67,17 @@ class Relation(Query):
       return ''
     else:
       inputs_create_hql = str.join('\n', [i._create_sub_hql(created) for i in self.inputs]).strip()
-      all_create_hql = """{inputs_create_hql}
+      all_create_hql = """
+{inputs_create_hql}
 
 -- Archive-generated HQL for: {qualified_name}
--- Created: {created_qualified_names}
-{create_hql}""".format(
+{create_hql}
+""".format(
         inputs_create_hql = inputs_create_hql,
         qualified_name = self.qualified_name(),
         created_qualified_names = [c.qualified_name() for c in created],
         create_hql = self._create_hql(created),
-      )
+      ).strip()
       created.append(self)
       return all_create_hql
 

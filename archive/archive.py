@@ -80,7 +80,7 @@ class Archive(Workflow):
 
   def develop(self):
     query = self.develop_hql()
-    hive_job = self.archive.hive.run_sync(query)
+    hive_job = self.hive.run_sync(query)
     return hive_job
 
   def develop_hql(self):
@@ -88,7 +88,7 @@ class Archive(Workflow):
 
   def build(self):
     query = self.build_hql()
-    hive_job = self.archive.hive.run_async(query)
+    hive_job = self.hive.run_async(query)
     return hive_job
 
   def build_hql(self):

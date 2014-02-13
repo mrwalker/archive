@@ -10,6 +10,7 @@ class Query(Workflow):
     self.template = '%s.hql' % self.name
     self.inputs = inputs
     self.settings = kwargs.get('settings', {})
+    self.resources = kwargs.get('resources', {})
 
   def graph(self, views_only = False):
     return self._graph({
@@ -72,4 +73,9 @@ class Query(Workflow):
     settings_hql = ''
     for key, value in self.settings.iteritems():
       settings_hql += 'SET %s=%s;\n' % (key, value)
-    return settings_hql.strip()
+
+    resources_hql = ''
+    for key, value in self.resources.iteritems():
+      resources_hql += 'ADD %s %s;\n' % (key, value)
+
+    return '%s\n%s' % (settings_hql.strip(), resources_hql.strip())

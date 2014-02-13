@@ -27,7 +27,7 @@ class InsertOverwrite(Query):
     stats['archive']['current_depth'] -= 1
     return stats
 
-  def create_hql(self, created):
+  def _create_hql(self, created):
     return '''INSERT OVERWRITE TABLE {database}.{name}
 {hql}
 ;'''.format(
@@ -46,9 +46,9 @@ class InsertOverwrite(Query):
 -- Created: {created_qualified_names}
 {create_hql}""".format(
       inputs_create_hql = inputs_create_hql,
-      external_table_create_hql = self.external_table.create_hql(created),
+      external_table_create_hql = self.external_table._create_hql(created),
       qualified_name = self.external_table.qualified_name(),
       created_qualified_names = [c.qualified_name() for c in created],
-      create_hql = self.create_hql(created),
+      create_hql = self._create_hql(created),
     )
     return all_create_hql

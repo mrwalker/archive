@@ -46,7 +46,7 @@ class Relation(Query):
     stats['archive']['current_depth'] -= 1
     return stats
 
-  def create_hql(self, created):
+  def _create_hql(self, created):
     created_databases = set([c.database for c in created])
     if self.database in created_databases:
       return ''
@@ -66,7 +66,7 @@ class Relation(Query):
         inputs_create_hql = inputs_create_hql,
         qualified_name = self.qualified_name(),
         created_qualified_names = [c.qualified_name() for c in created],
-        create_hql = self.create_hql(created),
+        create_hql = self._create_hql(created),
       )
       created.append(self)
       return all_create_hql
@@ -85,7 +85,7 @@ class ExternalTable(Relation):
     else:
       return ''
 
-  def create_hql(self, created):
+  def _create_hql(self, created):
     return '''
 {super_hql}
 CREATE EXTERNAL TABLE IF NOT EXISTS {database}.{name}
@@ -94,7 +94,7 @@ CREATE EXTERNAL TABLE IF NOT EXISTS {database}.{name}
 
 {recover_partitions}
 '''.format(
-      super_hql = Relation.create_hql(self, created),
+      super_hql = Relation._create_hql(self, created),
       database = self.database,
       name = self.name,
       hql = self.hql(),
@@ -107,15 +107,15 @@ class ViewUntilTable(Relation):
     self.view_or_table = None
     self.table_threshold = 3
 
-  def create_hql(self, created):
+  def _create_hql(self, created):
     if not self.view_or_table:
-      raise RuntimeError('Create type must be determined before calling ViewUntilTable#create_hql')
+      raise RuntimeError('Create type must be determined before calling ViewUntilTable#_create_hql')
 
     return '''{super_hql}
 CREATE {view_or_table} IF NOT EXISTS {database}.{name} AS
 {hql}
 ;'''.format(
-      super_hql = Relation.create_hql(self, created),
+      super_hql = Relation._create_hql(self, created),
       view_or_table = self.view_or_table,
       database = self.database,
       name = self.name,
@@ -133,10 +133,10 @@ CREATE {view_or_table} IF NOT EXISTS {database}.{name} AS
     return graph_str
 
 class Select(Relation):
-  def create_hql(self, created):
+  def _create_hql(self, created):
     return '''{super_hql}
 {hql}
 ;'''.format(
-      super_hql = Relation.create_hql(self, created),
+      super_hql = Relation._create_hql(self, created),
       hql = self.hql(),
     ).strip()

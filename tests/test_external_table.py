@@ -53,7 +53,7 @@ class TestExternalTable:
       'events',
       partitioned = True
     ))
-    assert_true(pattern.match(events._create_hql([])))
+    assert_true(pattern.match(events.create_hql()))
 
     # Reset Archive
     self.setup()
@@ -61,4 +61,4 @@ class TestExternalTable:
       'atomic',
       'events'
     ))
-    assert_is_none(pattern.match(events._create_hql([])))
+    assert_is_none(pattern.match(events.create_hql()))

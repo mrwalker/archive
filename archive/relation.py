@@ -46,12 +46,21 @@ class Relation(Query):
     stats['archive']['current_depth'] -= 1
     return stats
 
-  def _create_hql(self, created):
+  def _create_database_hql(self, created):
     created_databases = set([c.database for c in created])
     if self.database in created_databases:
       return ''
     else:
       return 'CREATE DATABASE IF NOT EXISTS %s;' % self.database
+
+  def _create_hql(self, created):
+    return '''
+{super_hql}
+{create_database_hql}
+'''.format(
+      super_hql = Query._create_hql(self, created),
+      create_database_hql = self._create_database_hql(created)
+    ).strip()
 
   def _create_sub_hql(self, created):
     if self in created:
@@ -76,7 +85,7 @@ class ExternalTable(Relation):
     Relation.__init__(self, database, name, *inputs, **kwargs)
     self.partitioned = kwargs.get('partitioned', False)
 
-  def _recover_partitions(self):
+  def _recover_partitions_hql(self):
     if self.partitioned:
       return 'ALTER TABLE `{database}.{name}` RECOVER PARTITIONS;'.format(
         database = self.database,
@@ -92,13 +101,13 @@ CREATE EXTERNAL TABLE IF NOT EXISTS {database}.{name}
 {hql}
 ;
 
-{recover_partitions}
+{recover_partitions_hql}
 '''.format(
       super_hql = Relation._create_hql(self, created),
       database = self.database,
       name = self.name,
       hql = self.hql(),
-      recover_partitions = self._recover_partitions()
+      recover_partitions_hql = self._recover_partitions_hql()
     ).strip()
 
 class ViewUntilTable(Relation):
@@ -111,10 +120,12 @@ class ViewUntilTable(Relation):
     if not self.view_or_table:
       raise RuntimeError('Create type must be determined before calling ViewUntilTable#_create_hql')
 
-    return '''{super_hql}
+    return '''
+{super_hql}
 CREATE {view_or_table} IF NOT EXISTS {database}.{name} AS
 {hql}
-;'''.format(
+;
+'''.format(
       super_hql = Relation._create_hql(self, created),
       view_or_table = self.view_or_table,
       database = self.database,
@@ -134,9 +145,11 @@ CREATE {view_or_table} IF NOT EXISTS {database}.{name} AS
 
 class Select(Relation):
   def _create_hql(self, created):
-    return '''{super_hql}
+    return '''
+{super_hql}
 {hql}
-;'''.format(
+;
+'''.format(
       super_hql = Relation._create_hql(self, created),
       hql = self.hql(),
     ).strip()

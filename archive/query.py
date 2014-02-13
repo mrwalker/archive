@@ -9,6 +9,7 @@ class Query(Workflow):
     self.name = name
     self.template = '%s.hql' % self.name
     self.inputs = inputs
+    self.settings = kwargs.get('settings', {})
 
   def graph(self, views_only = False):
     return self._graph({
@@ -66,3 +67,9 @@ class Query(Workflow):
     # Used only to set view_or_table
     self.archive.graph(views_only = True)
     return self._create_hql([])
+
+  def _create_hql(self, created):
+    settings_hql = ''
+    for key, value in self.settings.iteritems():
+      settings_hql += 'SET %s=%s;\n' % (key, value)
+    return settings_hql.strip()

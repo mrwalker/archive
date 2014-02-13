@@ -28,9 +28,13 @@ class InsertOverwrite(Query):
     return stats
 
   def _create_hql(self, created):
-    return '''INSERT OVERWRITE TABLE {database}.{name}
+    return '''
+{super_hql}
+INSERT OVERWRITE TABLE {database}.{name}
 {hql}
-;'''.format(
+;
+'''.format(
+      super_hql = Query._create_hql(self, created),
       database = self.external_table.database,
       name = self.external_table.name,
       hql = self.hql(),

@@ -59,10 +59,10 @@ class Query(Workflow):
 
   def _create_all_hql(self, views_only = False):
     # Used only to set view_or_table
-    self.graph(views_only = views_only)
+    self.archive.graph(views_only = views_only)
     return self._create_sub_hql([])
 
   def create_hql(self):
     # Used only to set view_or_table
-    self.graph(views_only = True)
+    self.archive.graph(views_only = True)
     return self._create_hql([])

@@ -46,7 +46,7 @@ class TestArchive:
 
   def test_graph(self):
     self.archive.add(self.events)
-    assert_equal('Archive: tests\natomic.events\n', self.archive.graph())
+    assert_equal('Archive: tests\natomic.events', self.archive.graph())
 
   def test_stats(self):
     self.archive.add(self.events)

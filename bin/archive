@@ -18,12 +18,12 @@ import importlib
 parser = argparse.ArgumentParser(description='Command line tool for Archive.')
 parser.add_argument('archive_module',
                     help='name of your archive module, in the form "my.package.module"')
-parser.add_argument('command',
-                    help='archive command to run')
 parser.add_argument('relation_name',
+                    help='name of relation to target (optional)')
+parser.add_argument('command',
                     nargs='?',
                     default=None,
-                    help='name of relation to target (optional)')
+                    help='archive command to run')
 parser.add_argument('-w, --warn',
                     dest='warn',
                     help='warn on create/drop/insert statements',

@@ -29,7 +29,7 @@ class Statement(Query, DMLWorkflow):
   def run(self):
     query = self.run_hql()
     if self._warn(query):
-      hive_job = self.archive.hive.run_async(query)
+      hive_job = self.archive.hive.run_sync(query)
       return hive_job
     return 'Aborting.'
 

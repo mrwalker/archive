@@ -13,11 +13,11 @@ class Hive:
   def set_token(self, api_token):
     pass
 
-  def run_sync(self, query, log_limit = 1000):
+  def run_sync(self, query, log_limit = 100):
     logger.info("Running query on dummy backend: '%s...'" % query[0:log_limit])
     return None
 
-  def run_async(self, query, log_limit = 1000):
+  def run_async(self, query, log_limit = 100):
     logger.info("Running query on dummy backend: '%s...'" % query[0:log_limit])
     return None
 
@@ -25,12 +25,14 @@ class Qubole(Hive):
   def set_token(self, api_token):
     QDS.configure(api_token = api_token)
 
-  def run_sync(self, query):
+  def run_sync(self, query, log_limit = 100):
+    logger.info("Running query on Qubole backend: '%s...'" % query[0:log_limit])
     hive_command = HiveCommand.run(query = query)
     logger.info('Ran job: %s, Status: %s' % (hive_command.id, hive_command.status))
     return hive_command
 
-  def run_async(self, query):
+  def run_async(self, query, log_limit = 100):
+    logger.info("Running query on Qubole backend: '%s...'" % query[0:log_limit])
     hive_command = HiveCommand.create(query = query)
     logger.info('Started job: %s, Status: %s' % (hive_command.id, hive_command.status))
     return hive_command

@@ -154,7 +154,7 @@ Statements:
   def refresh(self):
     query = self.refresh_hql()
     if self._warn(query):
-      hive_job = self.hive.run_async(query)
+      hive_job = self.hive.run_sync(query)
       return hive_job
     return 'Aborting.'
 
@@ -174,7 +174,7 @@ Statements:
   def run(self):
     query = self.run_hql()
     if self._warn(query):
-      hive_job = self.hive.run_async(query)
+      hive_job = self.hive.run_sync(query)
       return hive_job
     return 'Aborting.'
 

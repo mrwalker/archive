@@ -113,16 +113,20 @@ Statements:
 
   def develop(self):
     query = self.develop_hql()
-    hive_job = self.hive.run_sync(query)
-    return hive_job
+    if self._warn(query):
+      hive_job = self.hive.run_sync(query)
+      return hive_job
+    return 'Aborting.'
 
   def develop_hql(self):
     return self._create_all_hql(views_only = True)
 
   def build(self):
     query = self.build_hql()
-    hive_job = self.hive.run_async(query)
-    return hive_job
+    if self._warn(query):
+      hive_job = self.hive.run_async(query)
+      return hive_job
+    return 'Aborting.'
 
   def build_hql(self):
     return self._create_all_hql(views_only = False)
@@ -140,8 +144,10 @@ Statements:
 
   def refresh(self):
     query = self.refresh_hql()
-    hive_job = self.hive.run_async(query)
-    return hive_job
+    if self._warn(query):
+      hive_job = self.hive.run_async(query)
+      return hive_job
+    return 'Aborting.'
 
   def refresh_hql(self):
     # Used only to set view_or_table

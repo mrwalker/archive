@@ -11,32 +11,44 @@ Where <your-archive-module> is of the form: "my.package.module" and
 [your-relation] is the unqualified name of the relation you want to operate on.
 '''
 
+import argparse
 import sys
 import importlib
 
-if len(sys.argv) == 3:
-  archive_module = sys.argv[1]
-  relation_name = None
-  command = sys.argv[2]
-elif len(sys.argv) == 4:
-  archive_module = sys.argv[1]
-  relation_name = sys.argv[2]
-  command = sys.argv[3]
-else:
-  raise RuntimeError('Usage: archive <your-archive-module> [your-relation] <command>')
+parser = argparse.ArgumentParser(description='Command line tool for Archive.')
+parser.add_argument('archive_module',
+                    help='name of your archive module, in the form "my.package.module"')
+parser.add_argument('command',
+                    help='archive command to run')
+parser.add_argument('relation_name',
+                    nargs='?',
+                    default=None,
+                    help='name of relation to target (optional)')
+parser.add_argument('-w, --warn',
+                    dest='warn',
+                    help='warn on create/drop/insert statements',
+                    default=True)
+
+args = parser.parse_args()
+
+if not args.command and args.relation_name: 
+    args.command = args.relation_name
+    args.relation_name = None
 
 sys.path.extend(['.', 'archive'])
-archive_module = importlib.import_module(archive_module)
+archive_module = importlib.import_module(args.archive_module)
 archive = getattr(archive_module, 'archive')
 
-if relation_name:
-  archive_or_relation = archive.lookup(relation_name)
+if args.relation_name:
+  archive_or_relation = archive.lookup(args.relation_name)
 else:
   archive_or_relation = archive
 
-if command == 'stats':
+archive_or_relation.args = args
+
+if args.command == 'stats':
   import pprint
   pprint.pprint(archive_or_relation.stats())
 else:
-  method = getattr(archive_or_relation, command)
+  method = getattr(archive_or_relation, args.command)
   print method()

@@ -1,3 +1,5 @@
+import sys
+
 class Workflow:
   '''
   Workflow methods apply both to Archives and Queries.  They encapsulate the
@@ -70,3 +72,19 @@ class Workflow:
 
   def run_hql(self):
     pass
+
+  def _warn(self, hql):
+    '''
+    If warnings are enabled, generates an stdout warning about database
+    modifications contained within an HQL query. Returns a boolean
+    representing whether the warning was acknowledged positively.
+    '''
+    if self.args and 'warn' in self.args and self.args.warn:
+      if -1 != hql.find('DROP ') or \
+         -1 != hql.find('INSERT ') or \
+         -1 != hql.find('CREATE '):
+         sys.stdout.write('This command will modify the database, are you sure you want to continue [y/n]? ')
+         choice = raw_input().lower()
+         return choice == 'y'
+    
+    return True

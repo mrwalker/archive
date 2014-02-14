@@ -44,6 +44,12 @@ INSERT OVERWRITE TABLE {database}.{name}
     ).strip()
 
   def _create_sub_hql(self, created):
+    # Archive may have previously created external table
+    if self.external_table in created:
+      external_table_create_hql = ''
+    else:
+      external_table_create_hql = self.external_table._create_hql(created)
+
     inputs_create_hql = str.join('\n', [i._create_sub_hql(created) for i in self.inputs]).strip()
     all_create_hql = """
 {inputs_create_hql}
@@ -54,7 +60,7 @@ INSERT OVERWRITE TABLE {database}.{name}
 {create_hql}
 """.format(
       inputs_create_hql = inputs_create_hql,
-      external_table_create_hql = self.external_table._create_hql(created),
+      external_table_create_hql = external_table_create_hql,
       qualified_name = self.external_table.qualified_name(),
       created_qualified_names = [c.qualified_name() for c in created],
       create_hql = self._create_hql(created),

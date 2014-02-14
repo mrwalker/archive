@@ -113,6 +113,13 @@ Statements:
     stats['archive'].pop('current_depth', None)
     return stats
 
+  def drop_all(self):
+    query = self.drop_all_hql()
+    if self._warn(query):
+      hive_job = self.hive.run_sync(query)
+      return hive_job
+    return 'Aborting.'
+
   def develop(self):
     query = self.develop_hql()
     if self._warn(query):

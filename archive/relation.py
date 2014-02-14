@@ -47,6 +47,13 @@ class Relation(Query, DDLWorkflow):
     stats['archive']['current_depth'] -= 1
     return stats
 
+  def drop_all(self):
+    query = self.drop_all_hql()
+    if self._warn(query):
+      hive_job = self.archive.hive.run_sync(query)
+      return hive_job
+    return 'Aborting.'
+
   def _create_database_hql(self, created):
     created_databases = set([c.database for c in created])
     if self.database in created_databases:

@@ -17,11 +17,7 @@ class DDLWorkflow:
     Drops all databases of all members or dependencies.  Be careful with this;
     it's intended to give you a blank slate for development.
     '''
-    query = self.drop_all_hql()
-    if self._warn(query):
-      hive_job = self.hive.run_sync(query)
-      return hive_job
-    return 'Aborting.'
+    raise RuntimeError('Implemented in subclasses')
 
   def drop_all_hql(self):
     unique_databases = self.stats()['databases']['unique_databases']
@@ -88,6 +84,12 @@ class Utilities:
   '''
   Utility workflow methods
   '''
+
+  def graph(self):
+    raise RuntimeError('Implemented in subclasses')
+
+  def stats(self):
+    raise RuntimeError('Implemented in subclasses')
 
   def _warn(self, hql):
     '''

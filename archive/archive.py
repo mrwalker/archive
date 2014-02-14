@@ -1,3 +1,5 @@
+import collections
+
 from jinja2 import Environment, PackageLoader
 
 from workflow import Workflow
@@ -16,7 +18,7 @@ class Archive(Workflow):
     ))
 
     self.hive = hive
-    self.queries = {}
+    self.queries = collections.OrderedDict()
 
   def lookup(self, query_name):
     return self.queries[query_name]

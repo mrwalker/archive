@@ -21,7 +21,7 @@ class Relation(Query):
       context['offset'] -= 1
 
       graph_str = '%s%s\n%s' % ('\t' * context['offset'], self.qualified_name(), input_graph)
-      return graph_str
+      return graph_str.rstrip()
 
   def _stats(self, stats):
     stats['archive']['current_depth'] += 1

@@ -52,26 +52,23 @@ class Relation(Query, DDLWorkflow):
   def drop_all(self):
     query = self.drop_all_hql()
     if self._warn(query):
-      hive_job = self.archive.hive.run_sync(query)
-      return hive_job
-    return 'Aborting.'
+      return self.archive.hive.run_sync(query)
+    return 'Aborting'
 
   def develop(self):
-    query = self.develop_hql()
-    if self._warn(query):
-      hive_job = self.archive.hive.run_sync(query)
-      return hive_job
-    return 'Aborting.'
+    queries = self.develop_hql()
+    if self._warn_all(queries):
+      return self.archive.hive.run_all_sync(queries)
+    return ['Aborting']
 
   def develop_hql(self):
     return self._create_all_hql(views_only = True)
 
   def build(self):
-    query = self.build_hql()
-    if self._warn(query):
-      hive_job = self.archive.hive.run_async(query)
-      return hive_job
-    return 'Aborting.'
+    queries = self.build_hql()
+    if self._warn_all(queries):
+      return self.archive.hive.run_all_async(queries)
+    return ['Aborting']
 
   def build_hql(self):
     return self._create_all_hql(views_only = False)

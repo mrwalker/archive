@@ -104,5 +104,21 @@ class Utilities:
          sys.stdout.write('This command will modify the database, are you sure you want to continue [y/n]? ')
          choice = raw_input().lower()
          return choice == 'y'
-    
+
+    return True
+
+  def _warn_all(self, hqls):
+    '''
+    If warnings are enabled, generates an stdout warning about database
+    modifications contained within a list of HQL queries. Returns a boolean
+    representing whether the warning was acknowledged positively.
+    '''
+    if self.args and 'warn' in self.args and self.args.warn:
+      if any([-1 != hql.find('DROP ') for hql in hqls]) or \
+         any([-1 != hql.find('INSERT ') for hql in hqls]) or \
+         any([-1 != hql.find('CREATE ') for hql in hqls]):
+         sys.stdout.write('This command will modify the database, are you sure you want to continue [y/n]? ')
+         choice = raw_input().lower()
+         return choice == 'y'
+
     return True

@@ -31,7 +31,7 @@ parser.add_argument('-w, --warn',
 
 args = parser.parse_args()
 
-if not args.command and args.relation_name: 
+if not args.command and args.relation_name:
     args.command = args.relation_name
     args.relation_name = None
 

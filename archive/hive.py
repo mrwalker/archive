@@ -9,7 +9,16 @@ logger = logging.getLogger(__name__)
 from qds_sdk.qubole import Qubole as QDS
 from qds_sdk.commands import *
 
-class Hive:
+class Backend:
+  def run_all_sync(self, queries):
+    logger.info("Running %s queries" % len(queries))
+    return [self.run_sync(query) for query in queries]
+
+  def run_all_async(self, queries):
+    logger.info("Running %s queries" % len(queries))
+    return [self.run_async(query) for query in queries]
+
+class Hive(Backend):
   def set_token(self, api_token):
     pass
 

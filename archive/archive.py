@@ -116,26 +116,23 @@ Statements:
   def drop_all(self):
     query = self.drop_all_hql()
     if self._warn(query):
-      hive_job = self.hive.run_sync(query)
-      return hive_job
-    return 'Aborting.'
+      return self.hive.run_sync(query)
+    return 'Aborting'
 
   def develop(self):
-    query = self.develop_hql()
-    if self._warn(query):
-      hive_job = self.hive.run_sync(query)
-      return hive_job
-    return 'Aborting.'
+    queries = self.develop_hql()
+    if self._warn_all(queries):
+      return self.hive.run_all_sync(queries)
+    return ['Aborting']
 
   def develop_hql(self):
     return self._create_all_hql(views_only = True)
 
   def build(self):
-    query = self.build_hql()
-    if self._warn(query):
-      hive_job = self.hive.run_async(query)
-      return hive_job
-    return 'Aborting.'
+    queries = self.build_hql()
+    if self._warn_all(queries):
+      return self.hive.run_all_async(queries)
+    return ['Aborting']
 
   def build_hql(self):
     return self._create_all_hql(views_only = False)
@@ -147,11 +144,10 @@ Statements:
     return list(itertools.chain(*[hqls for hqls in (query._create_sub_hql(created) for query in self.queries.values()) if hqls is not None]))
 
   def refresh(self):
-    query = self.refresh_hql()
-    if self._warn(query):
-      hive_job = self.hive.run_sync(query)
-      return hive_job
-    return 'Aborting.'
+    queries = self.refresh_hql()
+    if self._warn_all(queries):
+      return self.hive.run_all_sync(queries)
+    return ['Aborting']
 
   def refresh_hql(self):
     # Used only to set view_or_table
@@ -169,9 +165,9 @@ Statements:
     return queries
 
   def run(self):
-    query = self.run_hql()
-    if self._warn(query):
-      hive_job = self.hive.run_sync(query)
+    queries = self.run_hql()
+    if self._warn(queries):
+      hive_job = self.hive.run_all_sync(queries)
       return hive_job
     return 'Aborting.'
 

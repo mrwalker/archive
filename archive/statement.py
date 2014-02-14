@@ -48,7 +48,7 @@ class InsertOverwrite(Statement):
     return graph_str
 
   def run_hql(self):
-    return '''
+    return ['''
 {command_hql}
 INSERT OVERWRITE TABLE {database}.{name}
 {hql}
@@ -58,15 +58,15 @@ INSERT OVERWRITE TABLE {database}.{name}
       database = self.external_table.database,
       name = self.external_table.name,
       hql = self.hql(),
-    ).strip()
+    ).strip()]
 
 class Select(Statement):
   def run_hql(self):
-    return '''
+    return ['''
 {command_hql}
 {hql}
 ;
 '''.format(
       command_hql = Statement._command_hql(self),
       hql = self.hql(),
-    ).strip()
+    ).strip()]

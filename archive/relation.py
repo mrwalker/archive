@@ -1,3 +1,5 @@
+import itertools
+
 from query import Query
 from workflow import DDLWorkflow
 
@@ -102,21 +104,13 @@ class Relation(Query, DDLWorkflow):
 
   def _create_sub_hql(self, created):
     if self in created:
-      return ''
+      return None
     else:
-      inputs_create_hql = str.join('\n', [i._create_sub_hql(created) for i in self.inputs]).strip()
-      all_create_hql = """
-{inputs_create_hql}
-
--- Archive-generated HQL for: {qualified_name}
-{create_hql}
-""".format(
-        inputs_create_hql = inputs_create_hql,
-        qualified_name = self.qualified_name(),
-        create_hql = self._create_hql(created),
-      ).strip()
+      inputs_create_hql = list(itertools.chain(*[hqls for hqls in (i._create_sub_hql(created) for i in self.inputs) if hqls is not None]))
+      create_hql = self._create_hql(created)
+      inputs_create_hql.append(create_hql)
       created.append(self)
-      return all_create_hql
+      return inputs_create_hql
 
 class ExternalTable(Relation):
   def __init__(self, database, name, *inputs, **kwargs):

@@ -46,9 +46,25 @@ else:
 
 archive_or_relation.args = args
 
+multiple_outputs = [
+  'develop',
+  'develop_hql',
+  'build',
+  'build_hql',
+  'refresh',
+  'refresh_hql',
+  'run',
+  'run_hql',
+]
+
 if args.command == 'stats':
   import pprint
   pprint.pprint(archive_or_relation.stats())
+elif args.command in multiple_outputs:
+  method = getattr(archive_or_relation, args.command)
+  results = method()
+  for result in results:
+    print result
 else:
   method = getattr(archive_or_relation, args.command)
   print method()

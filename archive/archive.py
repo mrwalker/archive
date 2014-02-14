@@ -1,4 +1,4 @@
-import collections
+import collections, itertools
 
 from jinja2 import Environment, PackageLoader
 
@@ -144,12 +144,7 @@ Statements:
     # Used only to set view_or_table
     self.graph(views_only = views_only)
     created = []
-
-    all_create_hql = '-- Archive-generated HQL for Archive: %s\n' % self.package
-    for r in self.queries.values():
-      all_create_hql += r._create_sub_hql(created)
-
-    return all_create_hql
+    return list(itertools.chain(*[hqls for hqls in (query._create_sub_hql(created) for query in self.queries.values()) if hqls is not None]))
 
   def refresh(self):
     query = self.refresh_hql()
@@ -169,7 +164,9 @@ Statements:
     drop_table_hql = str.join('\n', ['DROP TABLE %s;' % t.qualified_name() for t in tables])
 
     # Drop tables and re-build the Hive
-    return '%s\n%s' % (drop_table_hql, self.build_hql())
+    queries = self.build_hql()
+    queries.insert(0, drop_table_hql)
+    return queries
 
   def run(self):
     query = self.run_hql()
@@ -179,7 +176,4 @@ Statements:
     return 'Aborting.'
 
   def run_hql(self):
-    all_run_hql = '-- Archive-generated HQL for executing Archive: %s\n' % self.package
-    for query in self.queries.values():
-      all_run_hql += query.run_hql()
-    return all_run_hql
+    return list(itertools.chain(*[hqls for hqls in (query.run_hql() for query in self.queries.values()) if hqls is not None]))

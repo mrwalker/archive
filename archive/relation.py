@@ -86,6 +86,9 @@ class ExternalTable(Relation):
     Relation.__init__(self, database, name, *inputs, **kwargs)
     self.partitioned = kwargs.get('partitioned', False)
 
+  def _show(self, context):
+    context['tables'].append(self.qualified_name())
+
   def _recover_partitions_hql(self):
     if self.partitioned:
       return 'ALTER TABLE `{database}.{name}` RECOVER PARTITIONS;'.format(
@@ -117,6 +120,12 @@ class ViewUntilTable(Relation):
     self.view_or_table = None
     self.table_threshold = 3
 
+  def _show(self, context):
+    if self.view_or_table == 'TABLE':
+      context['tables'].append(self.qualified_name())
+    else:
+      context['views'].append(self.qualified_name())
+
   def _create_hql(self, created):
     if not self.view_or_table:
       raise RuntimeError('Create type must be determined before calling ViewUntilTable#_create_hql')
@@ -145,6 +154,10 @@ CREATE {view_or_table} IF NOT EXISTS {database}.{name} AS
     return graph_str
 
 class Select(Relation):
+  def _show(self, context):
+    # FIXME: this is telling about this class' position in the type hierarchy
+    context['statements'].append(self.qualified_name())
+
   def _create_hql(self, created):
     return '''
 {super_hql}

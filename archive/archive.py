@@ -43,6 +43,39 @@ class Archive(Workflow):
     for i in query.inputs:
       self._validate(i)
 
+  def show(self):
+    # Used only to set view_or_table
+    self.graph(views_only = False)
+    context = {
+      'tables': [],
+      'views': [],
+      'statements': [],
+    }
+
+    for query in self.queries.values():
+      query._show(context)
+
+    return '''
+Archive: {package} ({tables} tables, {views} views, and {statements} statements)
+
+Tables:
+{table_list}
+
+Views:
+{view_list}
+
+Statements:
+{statement_list}
+'''.format(
+      package = self.package,
+      tables = len(context['tables']),
+      views = len(context['views']),
+      statements = len(context['statements']),
+      table_list = str.join('\n', sorted(context['tables'])),
+      view_list = str.join('\n', sorted(context['views'])),
+      statement_list = str.join('\n', sorted(context['statements']))
+    ).strip()
+
   def graph(self, views_only = False):
     context = {
       'offset': 0,

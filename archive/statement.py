@@ -5,6 +5,9 @@ class InsertOverwrite(Query):
     self.external_table = external_table
     Query.__init__(self, name, *inputs, **kwargs)
 
+  def _show(self, context):
+    context['statements'].append(self.name)
+
   def _graph(self, context, views_only):
     context['offset'] += 1
     input_graph = str.join('\n', [i._graph(context, views_only) for i in self.inputs]).rstrip()

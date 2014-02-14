@@ -54,6 +54,26 @@ class Relation(Query, DDLWorkflow):
       return hive_job
     return 'Aborting.'
 
+  def develop(self):
+    query = self.develop_hql()
+    if self._warn(query):
+      hive_job = self.archive.hive.run_sync(query)
+      return hive_job
+    return 'Aborting.'
+
+  def develop_hql(self):
+    return self._create_all_hql(views_only = True)
+
+  def build(self):
+    query = self.build_hql()
+    if self._warn(query):
+      hive_job = self.archive.hive.run_async(query)
+      return hive_job
+    return 'Aborting.'
+
+  def build_hql(self):
+    return self._create_all_hql(views_only = False)
+
   def _create_database_hql(self, created):
     created_databases = set([c.database for c in created])
     if self.database in created_databases:

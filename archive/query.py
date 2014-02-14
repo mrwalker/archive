@@ -43,22 +43,6 @@ class Query(Utilities):
     inputs = dict([(i.name, i.qualified_name()) for i in self.inputs])
     return template.render(inputs = inputs)
 
-  def develop(self):
-    query = self.develop_hql()
-    hive_job = self.archive.hive.run_sync(query)
-    return hive_job
-
-  def develop_hql(self):
-    return self._create_all_hql(views_only = True)
-
-  def build(self):
-    query = self.build_hql()
-    hive_job = self.archive.hive.run_async(query)
-    return hive_job
-
-  def build_hql(self):
-    return self._create_all_hql(views_only = False)
-
   def _create_all_hql(self, views_only = False):
     # Used only to set view_or_table
     self.archive.graph(views_only = views_only)

@@ -1,6 +1,7 @@
 from query import Query
+from workflow import DDLWorkflow
 
-class Relation(Query):
+class Relation(Query, DDLWorkflow):
   def __init__(self, database, name, *inputs, **kwargs):
     self.database = database
     Query.__init__(self, name, *inputs, **kwargs)

@@ -1,6 +1,7 @@
 from query import Query
+from workflow import DMLWorkflow
 
-class InsertOverwrite(Query):
+class InsertOverwrite(Query, DMLWorkflow):
   def __init__(self, name, external_table, *inputs, **kwargs):
     self.external_table = external_table
     Query.__init__(self, name, *inputs, **kwargs)

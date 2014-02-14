@@ -2,9 +2,9 @@ import collections
 
 from jinja2 import Environment, PackageLoader
 
-from workflow import Workflow
+from workflow import DDLWorkflow, DMLWorkflow, Utilities
 
-class Archive(Workflow):
+class Archive(DDLWorkflow, DMLWorkflow, Utilities):
   '''
   An Archive is a container for the queries that make up your Hive.
   '''

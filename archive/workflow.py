@@ -1,11 +1,15 @@
+'''
+Workflow methods apply both to Archives and Queries.  They encapsulate the
+process of developing, building, and then refreshing your Hive.  The intent
+is to allow a Hive to serve as the backend for an automated process for
+running data pipelines.
+'''
+
 import sys
 
-class Workflow:
+class DDLWorkflow:
   '''
-  Workflow methods apply both to Archives and Queries.  They encapsulate the
-  process of developing, building, and then refreshing your Hive.  Then intent
-  is to allow a Hive to serve as the backend for an automated process for
-  running data pipelines.
+  DDL workflow methods (create and delete)
   '''
 
   def drop_all(self):
@@ -64,6 +68,11 @@ class Workflow:
   def refresh_hql(self):
     raise RuntimeError('Implemented in subclasses')
 
+class DMLWorkflow:
+  '''
+  DML workflow methods (currently only select and insert overwrite)
+  '''
+
   def run(self):
     '''
     Executes the given query synchronously and returns its result or failure.
@@ -74,6 +83,11 @@ class Workflow:
 
   def run_hql(self):
     pass
+
+class Utilities:
+  '''
+  Utility workflow methods
+  '''
 
   def _warn(self, hql):
     '''

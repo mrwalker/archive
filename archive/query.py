@@ -1,6 +1,6 @@
-from workflow import Workflow
+from workflow import Utilities
 
-class Query(Workflow):
+class Query(Utilities):
   '''
   Archive's notion of a Hive query, Queries form the nodes of the DAG managed by Archive.
   '''

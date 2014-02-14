@@ -26,6 +26,19 @@ class Statement(Query, DMLWorkflow):
   def _show(self, context):
     context['statements'].append(self.name)
 
+  def _create_sub_hql(self, created):
+    return ''
+
+  def run(self):
+    query = self.run_hql()
+    if self._warn(query):
+      hive_job = self.archive.hive.run_async(query)
+      return hive_job
+    return 'Aborting.'
+
+  def run_hql(self):
+    return self._run_hql([])
+
 class InsertOverwrite(Statement):
   def __init__(self, name, external_table, *inputs, **kwargs):
     self.external_table = external_table
@@ -40,7 +53,7 @@ class InsertOverwrite(Statement):
     graph_str = '%s[%s]\n%s\n%s' % ('\t' * context['offset'], self.name, input_graph, external_table_graph)
     return graph_str
 
-  def _create_hql(self, created):
+  def _run_hql(self, created):
     return '''
 {super_hql}
 INSERT OVERWRITE TABLE {database}.{name}
@@ -53,31 +66,8 @@ INSERT OVERWRITE TABLE {database}.{name}
       hql = self.hql(),
     ).strip()
 
-  def _create_sub_hql(self, created):
-    # Archive may have previously created external table
-    if self.external_table in created:
-      external_table_create_hql = ''
-    else:
-      external_table_create_hql = self.external_table._create_hql(created)
-
-    inputs_create_hql = str.join('\n', [i._create_sub_hql(created) for i in self.inputs]).strip()
-    all_create_hql = """
-{inputs_create_hql}
-
-{external_table_create_hql}
-
--- Archive-generated HQL for insert overwrite into: {qualified_name}
-{create_hql}
-""".format(
-      inputs_create_hql = inputs_create_hql,
-      external_table_create_hql = external_table_create_hql,
-      qualified_name = self.external_table.qualified_name(),
-      create_hql = self._create_hql(created),
-    ).strip()
-    return all_create_hql
-
 class Select(Statement):
-  def _create_hql(self, created):
+  def _run_hql(self, created):
     return '''
 {super_hql}
 {hql}
@@ -86,17 +76,3 @@ class Select(Statement):
       super_hql = Statement._create_hql(self, created),
       hql = self.hql(),
     ).strip()
-
-  def _create_sub_hql(self, created):
-    inputs_create_hql = str.join('\n', [i._create_sub_hql(created) for i in self.inputs]).strip()
-    all_create_hql = """
-{inputs_create_hql}
-
--- Archive-generated HQL for select: {name}
-{create_hql}
-""".format(
-      inputs_create_hql = inputs_create_hql,
-      name = self.name,
-      create_hql = self._create_hql(created),
-    ).strip()
-    return all_create_hql

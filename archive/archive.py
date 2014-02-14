@@ -170,3 +170,16 @@ Statements:
 
     # Drop tables and re-build the Hive
     return '%s\n%s' % (drop_table_hql, self.build_hql())
+
+  def run(self):
+    query = self.run_hql()
+    if self._warn(query):
+      hive_job = self.hive.run_async(query)
+      return hive_job
+    return 'Aborting.'
+
+  def run_hql(self):
+    all_run_hql = '-- Archive-generated HQL for executing Archive: %s\n' % self.package
+    for query in self.queries.values():
+      all_run_hql += query._run_hql([])
+    return all_run_hql

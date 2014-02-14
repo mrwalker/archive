@@ -108,6 +108,9 @@ class Relation(Query, DDLWorkflow):
       created.append(self)
       return all_create_hql
 
+  def _run_hql(self, created):
+    return ''
+
 class ExternalTable(Relation):
   def __init__(self, database, name, *inputs, **kwargs):
     Relation.__init__(self, database, name, *inputs, **kwargs)

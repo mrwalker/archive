@@ -75,10 +75,10 @@ class DMLWorkflow:
     This can be used in conjunction with refresh to build scheduled data
     pipelines.
     '''
-    pass
+    raise RuntimeError('Implemented in subclasses')
 
   def run_hql(self):
-    pass
+    raise RuntimeError('Implemented in subclasses')
 
 class Utilities:
   '''

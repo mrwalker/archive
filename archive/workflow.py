@@ -14,8 +14,10 @@ class Workflow:
     it's intended to give you a blank slate for development.
     '''
     query = self.drop_all_hql()
-    hive_job = self.hive.run_sync(query)
-    return hive_job
+    if self._warn(query):
+      hive_job = self.hive.run_sync(query)
+      return hive_job
+    return 'Aborting.'
 
   def drop_all_hql(self):
     unique_databases = self.stats()['databases']['unique_databases']

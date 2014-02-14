@@ -103,7 +103,6 @@ class Relation(Query, DDLWorkflow):
 """.format(
         inputs_create_hql = inputs_create_hql,
         qualified_name = self.qualified_name(),
-        created_qualified_names = [c.qualified_name() for c in created],
         create_hql = self._create_hql(created),
       ).strip()
       created.append(self)
@@ -180,18 +179,3 @@ CREATE {view_or_table} IF NOT EXISTS {database}.{name} AS
       self.view_or_table = 'VIEW'
 
     return graph_str
-
-class Select(Relation):
-  def _show(self, context):
-    # FIXME: this is telling about this class' position in the type hierarchy
-    context['statements'].append(self.qualified_name())
-
-  def _create_hql(self, created):
-    return '''
-{super_hql}
-{hql}
-;
-'''.format(
-      super_hql = Relation._create_hql(self, created),
-      hql = self.hql(),
-    ).strip()

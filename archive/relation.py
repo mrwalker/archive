@@ -81,14 +81,24 @@ class Relation(Query, DDLWorkflow):
     else:
       return 'CREATE DATABASE IF NOT EXISTS %s;' % self.database
 
+  def create_hql(self):
+    # Used only to set view_or_table
+    self.archive.graph(views_only = True)
+    return self._create_hql([])
+
   def _create_hql(self, created):
     return '''
-{super_hql}
+{command_hql}
 {create_database_hql}
 '''.format(
-      super_hql = Query._create_hql(self, created),
+      command_hql = Query._command_hql(self),
       create_database_hql = self._create_database_hql(created)
     ).strip()
+
+  def _create_all_hql(self, views_only = False):
+    # Used only to set view_or_table
+    self.archive.graph(views_only = views_only)
+    return self._create_sub_hql([])
 
   def _create_sub_hql(self, created):
     if self in created:
@@ -107,9 +117,6 @@ class Relation(Query, DDLWorkflow):
       ).strip()
       created.append(self)
       return all_create_hql
-
-  def _run_hql(self, created):
-    return ''
 
 class ExternalTable(Relation):
   def __init__(self, database, name, *inputs, **kwargs):

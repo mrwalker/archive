@@ -26,18 +26,12 @@ class Statement(Query, DMLWorkflow):
   def _show(self, context):
     context['statements'].append(self.name)
 
-  def _create_sub_hql(self, created):
-    return ''
-
   def run(self):
     query = self.run_hql()
     if self._warn(query):
       hive_job = self.archive.hive.run_async(query)
       return hive_job
     return 'Aborting.'
-
-  def run_hql(self):
-    return self._run_hql([])
 
 class InsertOverwrite(Statement):
   def __init__(self, name, external_table, *inputs, **kwargs):
@@ -53,26 +47,26 @@ class InsertOverwrite(Statement):
     graph_str = '%s[%s]\n%s\n%s' % ('\t' * context['offset'], self.name, input_graph, external_table_graph)
     return graph_str
 
-  def _run_hql(self, created):
+  def run_hql(self):
     return '''
-{super_hql}
+{command_hql}
 INSERT OVERWRITE TABLE {database}.{name}
 {hql}
 ;
 '''.format(
-      super_hql = Statement._create_hql(self, created),
+      command_hql = Statement._command_hql(self),
       database = self.external_table.database,
       name = self.external_table.name,
       hql = self.hql(),
     ).strip()
 
 class Select(Statement):
-  def _run_hql(self, created):
+  def run_hql(self):
     return '''
-{super_hql}
+{command_hql}
 {hql}
 ;
 '''.format(
-      super_hql = Statement._create_hql(self, created),
+      command_hql = Statement._command_hql(self),
       hql = self.hql(),
     ).strip()

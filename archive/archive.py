@@ -181,5 +181,5 @@ Statements:
   def run_hql(self):
     all_run_hql = '-- Archive-generated HQL for executing Archive: %s\n' % self.package
     for query in self.queries.values():
-      all_run_hql += query._run_hql([])
+      all_run_hql += query.run_hql()
     return all_run_hql

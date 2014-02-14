@@ -43,17 +43,7 @@ class Query(Utilities):
     inputs = dict([(i.name, i.qualified_name()) for i in self.inputs])
     return template.render(inputs = inputs)
 
-  def _create_all_hql(self, views_only = False):
-    # Used only to set view_or_table
-    self.archive.graph(views_only = views_only)
-    return self._create_sub_hql([])
-
-  def create_hql(self):
-    # Used only to set view_or_table
-    self.archive.graph(views_only = True)
-    return self._create_hql([])
-
-  def _create_hql(self, created):
+  def _command_hql(self):
     settings_hql = ''
     for key, value in self.settings.iteritems():
       settings_hql += 'SET %s=%s;\n' % (key, value)
@@ -63,3 +53,9 @@ class Query(Utilities):
       resources_hql += 'ADD %s %s;\n' % (key, value)
 
     return '%s\n%s' % (settings_hql.strip(), resources_hql.strip())
+
+  def run_hql(self):
+    return ''
+
+  def _create_sub_hql(self, created):
+    return ''

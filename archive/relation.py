@@ -67,7 +67,7 @@ class Relation(Query, DDLWorkflow):
   def build(self):
     queries = self.build_hql()
     if self._warn_all(queries):
-      return self.archive.hive.run_all_async(queries)
+      return self.archive.hive.run_all_sync(queries)
     return ['Aborting']
 
   def build_hql(self):

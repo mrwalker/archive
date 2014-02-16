@@ -55,7 +55,7 @@ class Query(Utilities):
     return '%s\n%s' % (settings_hql.strip(), resources_hql.strip())
 
   def run_hql(self):
-    return None
+    return []
 
   def _create_sub_hql(self, created):
-    return None
+    return []

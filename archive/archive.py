@@ -141,7 +141,7 @@ Statements:
     # Used only to set view_or_table
     self.graph(views_only = views_only)
     created = []
-    return list(itertools.chain(*[hqls for hqls in (query._create_sub_hql(created) for query in self.queries.values()) if hqls is not None]))
+    return list(itertools.chain(*[query._create_sub_hql(created) for query in self.queries.values()]))
 
   def refresh(self):
     queries = self.refresh_hql()
@@ -172,4 +172,4 @@ Statements:
     return 'Aborting.'
 
   def run_hql(self):
-    return list(itertools.chain(*[hqls for hqls in (query.run_hql() for query in self.queries.values()) if hqls is not None]))
+    return list(itertools.chain(*[query.run_hql() for query in self.queries.values()]))

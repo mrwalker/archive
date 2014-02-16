@@ -101,9 +101,9 @@ class Relation(Query, DDLWorkflow):
 
   def _create_sub_hql(self, created):
     if self in created:
-      return None
+      return []
     else:
-      inputs_create_hql = list(itertools.chain(*[hqls for hqls in (i._create_sub_hql(created) for i in self.inputs) if hqls is not None]))
+      inputs_create_hql = list(itertools.chain(*[i._create_sub_hql(created) for i in self.inputs]))
       create_hql = self._create_hql(created)
       inputs_create_hql.append(create_hql)
       created.append(self)

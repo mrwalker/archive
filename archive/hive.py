@@ -38,6 +38,11 @@ class Qubole(Hive):
     logger.info("Running query on Qubole backend: '%s...'" % query[0:log_limit])
     hive_command = HiveCommand.run(query = query)
     logger.info('Ran job: %s, Status: %s' % (hive_command.id, hive_command.status))
+
+    # Notify caller if the command wasn't successful
+    if not HiveCommand.is_success(hive_command.status):
+      raise RuntimeError("Job %s failed or was cancelled, Status: %s\nCommand: '%s'" % (hive_command.id, hive_command.status, hive_command))
+
     return hive_command
 
   def run_async(self, query, log_limit = 100):

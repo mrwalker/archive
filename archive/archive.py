@@ -169,7 +169,7 @@ Statements:
     if self._warn_all(queries):
       hive_job = self.hive.run_all_sync(queries)
       return hive_job
-    return 'Aborting.'
+    return ['Aborting']
 
   def run_hql(self):
     return list(itertools.chain(*[query.run_hql() for query in self.queries.values()]))

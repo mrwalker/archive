@@ -24,10 +24,10 @@ parser.add_argument('command',
                     nargs='?',
                     default=None,
                     help='archive command to run')
-parser.add_argument('-w, --warn',
-                    dest='warn',
-                    help='warn on create/drop/insert statements',
-                    default=True)
+parser.add_argument('-n', '--no-warn',
+                    dest='no_warn',
+                    action='store_true',
+                    help='do not warn on create/drop/insert queries')
 
 args = parser.parse_args()
 

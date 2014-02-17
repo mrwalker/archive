@@ -166,7 +166,7 @@ Statements:
 
   def run(self):
     queries = self.run_hql()
-    if self._warn(queries):
+    if self._warn_all(queries):
       hive_job = self.hive.run_all_sync(queries)
       return hive_job
     return 'Aborting.'

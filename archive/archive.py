@@ -157,7 +157,7 @@ Statements:
     tables = [t for t in self.queries.values() if hasattr(t, 'view_or_table') and t.view_or_table == 'TABLE']
 
     # Drop them
-    drop_table_hql = str.join('\n', ['DROP TABLE %s;' % t.qualified_name() for t in tables])
+    drop_table_hql = str.join('\n', ['DROP TABLE IF EXISTS %s;' % t.qualified_name() for t in tables])
 
     # Drop tables and re-build the Hive
     queries = self.build_hql()

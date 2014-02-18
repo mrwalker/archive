@@ -55,6 +55,15 @@ class Relation(Query, DDLWorkflow):
       return self.archive.hive.run_sync(query)
     return 'Aborting'
 
+  def drop_hql(self):
+    return 'DROP TABLE IF EXISTS %s;' % self.qualified_name()
+
+  def drop(self):
+    query = self.drop_hql()
+    if self._warn(query):
+      return self.archive.hive.run_sync(query)
+    return 'Aborting'
+
   def develop(self):
     queries = self.develop_hql()
     if self._warn_all(queries):
@@ -153,6 +162,14 @@ class ViewUntilTable(Relation):
       context['tables'].append(self.qualified_name())
     else:
       context['views'].append(self.qualified_name())
+
+  def drop_hql(self):
+    # Used only to set view_or_table
+    self.archive.graph(views_only = False)
+    return 'DROP %s IF EXISTS %s;' % (
+      self.view_or_table,
+      self.qualified_name()
+    )
 
   def _create_hql(self, created):
     if not self.view_or_table:

@@ -55,14 +55,14 @@ class Relation(Query, DDLWorkflow):
       return self.archive.hive.run_sync(query)
     return 'Aborting'
 
-  def drop_hql(self):
-    return 'DROP TABLE IF EXISTS %s;' % self.qualified_name()
-
   def drop(self):
     query = self.drop_hql()
     if self._warn(query):
       return self.archive.hive.run_sync(query)
     return 'Aborting'
+
+  def drop_hql(self):
+    return 'DROP TABLE IF EXISTS %s;' % self.qualified_name()
 
   def develop(self):
     queries = self.develop_hql()
@@ -88,6 +88,12 @@ class Relation(Query, DDLWorkflow):
       return ''
     else:
       return 'CREATE DATABASE IF NOT EXISTS %s;' % self.database
+
+  def create(self):
+    query = self.create_hql()
+    if self._warn(query):
+      return self.archive.hive.run_sync(query)
+    return 'Aborting'
 
   def create_hql(self):
     # Used only to set view_or_table

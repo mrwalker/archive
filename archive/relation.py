@@ -203,3 +203,13 @@ CREATE {view_or_table} IF NOT EXISTS {database}.{name} AS
       self.view_or_table = 'VIEW'
 
     return graph_str
+
+class Table(ViewUntilTable):
+  def _graph(self, context, views_only):
+    self.view_or_table = 'TABLE'
+    return Relation._graph(self, context, views_only)
+
+class View(ViewUntilTable):
+  def _graph(self, context, views_only):
+    self.view_or_table = 'VIEW'
+    return Relation._graph(self, context, views_only)

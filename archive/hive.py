@@ -41,6 +41,7 @@ class Qubole(Hive):
 
     # Notify caller if the command wasn't successful
     if not HiveCommand.is_success(hive_command.status):
+      logger.error(hive_command.get_log())
       raise RuntimeError("Job %s failed or was cancelled, Status: %s\nCommand: '%s'" % (hive_command.id, hive_command.status, hive_command))
 
     return hive_command

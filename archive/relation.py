@@ -206,7 +206,7 @@ CREATE {view_or_table} IF NOT EXISTS {database}.{name} AS
 
 class Table(ViewUntilTable):
   def _graph(self, context, views_only):
-    self.view_or_table = 'TABLE'
+    self.view_or_table = 'TABLE' if not views_only else 'VIEW'
     return Relation._graph(self, context, views_only)
 
 class View(ViewUntilTable):

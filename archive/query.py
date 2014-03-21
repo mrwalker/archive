@@ -10,7 +10,7 @@ class Query(Utilities):
     self.template = '%s.hql' % self.name
     self.inputs = inputs
     self.settings = kwargs.get('settings', {})
-    self.resources = kwargs.get('resources', {})
+    self.resources = kwargs.get('resources', [])
 
   def graph(self, views_only = False):
     return self._graph({
@@ -49,8 +49,8 @@ class Query(Utilities):
       settings_hql += 'SET %s=%s;\n' % (key, value)
 
     resources_hql = ''
-    for key, value in self.resources.iteritems():
-      resources_hql += 'ADD %s %s;\n' % (key, value)
+    for config in self.resources:
+      resources_hql += 'ADD %s %s;\n' % (config['type'], config['path'])
 
     return '%s\n%s' % (settings_hql.strip(), resources_hql.strip())
 

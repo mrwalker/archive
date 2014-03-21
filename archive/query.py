@@ -11,6 +11,7 @@ class Query(Utilities):
     self.inputs = inputs
     self.settings = kwargs.get('settings', {})
     self.resources = kwargs.get('resources', [])
+    self.functions = kwargs.get('functions', [])
 
   def graph(self, views_only = False):
     return self._graph({
@@ -52,7 +53,18 @@ class Query(Utilities):
     for config in self.resources:
       resources_hql += 'ADD %s %s;\n' % (config['type'], config['path'])
 
-    return '%s\n%s' % (settings_hql.strip(), resources_hql.strip())
+    functions_hql = ''
+    for config in self.functions:
+      functions_hql += "CREATE TEMPORARY FUNCTION %s AS '%s';\n" % (
+        config['function'],
+        config['class']
+      )
+
+    return '%s\n%s\n%s' % (
+      settings_hql.strip(),
+      resources_hql.strip(),
+      functions_hql.strip()
+    )
 
   def run_hql(self):
     return []

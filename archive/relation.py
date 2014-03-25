@@ -97,7 +97,7 @@ class Relation(Query, DDLWorkflow):
 
   def create_hql(self):
     # Used only to set view_or_table
-    self.archive.graph(views_only = True)
+    self.archive.graph(views_only = False)
     return self._create_hql([])
 
   def _create_hql(self, created):

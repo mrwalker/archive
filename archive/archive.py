@@ -51,6 +51,7 @@ class Archive(DDLWorkflow, DMLWorkflow, Utilities):
     context = {
       'tables': [],
       'views': [],
+      'external_tables': [],
       'statements': [],
     }
 
@@ -58,7 +59,7 @@ class Archive(DDLWorkflow, DMLWorkflow, Utilities):
       query._show(context)
 
     return '''
-Archive: {package} ({tables} tables, {views} views, and {statements} statements)
+Archive: {package} ({tables} tables, {views} views, {external_tables} external tables, and {statements} statements)
 
 Tables:
 {table_list}
@@ -66,15 +67,20 @@ Tables:
 Views:
 {view_list}
 
+External tables:
+{external_table_list}
+
 Statements:
 {statement_list}
 '''.format(
       package = self.package,
       tables = len(context['tables']),
       views = len(context['views']),
+      external_tables = len(context['external_tables']),
       statements = len(context['statements']),
       table_list = str.join('\n', sorted(context['tables'])),
       view_list = str.join('\n', sorted(context['views'])),
+      external_table_list = str.join('\n', sorted(context['external_tables'])),
       statement_list = str.join('\n', sorted(context['statements']))
     ).strip()
 

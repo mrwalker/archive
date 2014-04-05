@@ -130,7 +130,7 @@ class ExternalTable(Relation):
     self.partitioned = kwargs.get('partitioned', False)
 
   def _show(self, context):
-    context['tables'].append(self.qualified_name())
+    context['external_tables'].append(self.qualified_name())
 
   def _recover_partitions_hql(self):
     if self.partitioned:

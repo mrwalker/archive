@@ -45,9 +45,6 @@ class Query(Utilities):
     return template.render(inputs = inputs)
 
   def _command_hql(self):
-    settings_hql = ''
-    for key, value in self.settings.iteritems():
-      settings_hql += 'SET %s=%s;\n' % (key, value)
 
     resources_hql = ''
     for config in self.resources:
@@ -60,10 +57,14 @@ class Query(Utilities):
         config['class']
       )
 
+    settings_hql = ''
+    for key, value in self.settings.iteritems():
+      settings_hql += 'SET %s=%s;\n' % (key, value)
+
     return '%s\n%s\n%s' % (
-      settings_hql.strip(),
       resources_hql.strip(),
-      functions_hql.strip()
+      functions_hql.strip(),
+      settings_hql.strip()
     )
 
   def run_hql(self):

@@ -45,7 +45,6 @@ class Query(Utilities):
     return template.render(inputs = inputs)
 
   def _command_hql(self):
-
     resources_hql = ''
     for config in self.resources:
       resources_hql += 'ADD %s %s;\n' % (config['type'], config['path'])

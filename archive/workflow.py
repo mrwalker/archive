@@ -23,10 +23,19 @@ class DDLWorkflow:
     unique_databases = self.stats()['databases']['unique_databases']
     return str.join('\n', ['DROP DATABASE IF EXISTS %s CASCADE;' % d for d in unique_databases])
 
+  def drop_tables(self):
+    '''
+    Drops only tables, which allows them to be refreshed using build.
+    '''
+    raise RuntimeError('Implemented in subclasses')
+
+  def drop_tables_hql(self):
+    raise RuntimeError('Implemented in subclasses')
+
   def develop(self):
     '''
     Like build, but creates only views, not tables.  This allows you to develop
-    new queries and allow Hive to check their syntax and schema prior to
+    new queries and allows Hive to check their syntax and schema prior to
     actually building the Hive.
 
     All relations except the immediate target are undisturbed by this method,
@@ -42,26 +51,11 @@ class DDLWorkflow:
   def build(self):
     '''
     Builds a new Hive.  External tables are created and their partitions
-    recovered.  Relations are created and some are optimized as tables.  If
-    tables or views already exist, this will fail.
+    recovered.  Relations are created and some are optimized as tables.
     '''
     raise RuntimeError('Implemented in subclasses')
 
   def build_hql(self):
-    raise RuntimeError('Implemented in subclasses')
-
-  def refresh(self):
-    '''
-    Refreshes an existing Hive by dropping existing tables, recovering
-    partitions in external tables, and then re-creating tables.  Any new
-    relations will be created.
-    
-    Views are not recreated, so schema changes are not supported unless you
-    manually drop modified views.
-    '''
-    raise RuntimeError('Implemented in subclasses')
-
-  def refresh_hql(self):
     raise RuntimeError('Implemented in subclasses')
 
 class DMLWorkflow:
@@ -72,8 +66,8 @@ class DMLWorkflow:
   def run(self):
     '''
     Executes the given query synchronously and returns its result or failure.
-    This can be used in conjunction with refresh to build scheduled data
-    pipelines.
+    This can be used in conjunction with drop_tables/build to build scheduled
+    data pipelines.
     '''
     raise RuntimeError('Implemented in subclasses')
 

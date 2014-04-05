@@ -51,8 +51,6 @@ multiple_outputs = [
   'develop_hql',
   'build',
   'build_hql',
-  'refresh',
-  'refresh_hql',
   'run',
   'run_hql',
 ]

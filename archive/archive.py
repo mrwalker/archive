@@ -125,6 +125,22 @@ Statements:
       return self.hive.run_sync(query)
     return 'Aborting'
 
+  def drop_tables(self):
+    query = self.drop_tables_hql()
+    if self._warn(query):
+      return self.archive.hive.run_sync(query)
+    return 'Aborting'
+
+  def drop_tables_hql(self):
+    # Used only to set view_or_table
+    self.graph(views_only = False)
+
+    # Look for tables
+    tables = [t for t in self.queries.values() if hasattr(t, 'view_or_table') and t.view_or_table == 'TABLE']
+
+    # Drop them
+    return str.join('\n', ['DROP TABLE IF EXISTS %s;' % t.qualified_name() for t in tables])
+
   def develop(self):
     queries = self.develop_hql()
     if self._warn_all(queries):
@@ -148,27 +164,6 @@ Statements:
     self.graph(views_only = views_only)
     created = []
     return list(itertools.chain(*[query._create_sub_hql(created) for query in self.queries.values()]))
-
-  def refresh(self):
-    queries = self.refresh_hql()
-    if self._warn_all(queries):
-      return self.hive.run_all_sync(queries)
-    return ['Aborting']
-
-  def refresh_hql(self):
-    # Used only to set view_or_table
-    self.graph(views_only = False)
-
-    # Look for tables
-    tables = [t for t in self.queries.values() if hasattr(t, 'view_or_table') and t.view_or_table == 'TABLE']
-
-    # Drop them
-    drop_table_hql = str.join('\n', ['DROP TABLE IF EXISTS %s;' % t.qualified_name() for t in tables])
-
-    # Drop tables and re-build the Hive
-    queries = self.build_hql()
-    queries.insert(0, drop_table_hql)
-    return queries
 
   def run(self):
     queries = self.run_hql()

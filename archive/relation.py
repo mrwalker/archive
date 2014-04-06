@@ -17,13 +17,13 @@ class Relation(Query, DDLWorkflow):
     context['references'][self.name] += 1
 
     if context['references'][self.name] > 1:
-      return '%s(%s)' % ('\t' * context['offset'], self.qualified_name())
+      return '%s%s ...' % ('\t' * context['offset'], self)
     else:
       context['offset'] += 1
       input_graph = str.join('\n', [i._graph(context, views_only) for i in self.inputs]).rstrip()
       context['offset'] -= 1
 
-      graph_str = '%s%s\n%s' % ('\t' * context['offset'], self.qualified_name(), input_graph)
+      graph_str = '%s%s\n%s' % ('\t' * context['offset'], self, input_graph)
       return graph_str.rstrip()
 
   def _stats(self, views_only):
@@ -130,6 +130,9 @@ class ExternalTable(Relation):
     Relation.__init__(self, database, name, *inputs, **kwargs)
     self.partitioned = kwargs.get('partitioned', False)
 
+  def __str__(self):
+    return 'ExternalTable(%s)' % self.qualified_name()
+
   def _show(self, context):
     context['external_tables'].append(self.qualified_name())
 
@@ -169,6 +172,10 @@ class ViewUntilTable(Relation):
     Relation.__init__(self, database, name, *inputs, **kwargs)
     self.view_or_table = None
     self.table_threshold = 3
+
+  def __str__(self):
+    camel_type = self.view_or_table.lower().capitalize()
+    return '%s(%s) ViewUntilTable' % (camel_type, self.qualified_name())
 
   def _show(self, context):
     if self.view_or_table == 'TABLE':
@@ -214,7 +221,13 @@ class Table(ViewUntilTable):
     self.view_or_table = 'TABLE' if not views_only else 'VIEW'
     return Relation._stats(self, views_only)
 
+  def __str__(self):
+    return 'Table(%s)' % self.qualified_name()
+
 class View(ViewUntilTable):
   def _stats(self, views_only):
     self.view_or_table = 'VIEW'
     return Relation._stats(self, views_only)
+
+  def __str__(self):
+    return 'View(%s)' % self.qualified_name()

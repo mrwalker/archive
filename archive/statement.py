@@ -39,6 +39,9 @@ class InsertOverwrite(Statement):
     self.external_table = external_table
     Statement.__init__(self, name, *inputs, **kwargs)
 
+  def __str__(self):
+    return 'InsertOverwrite(%s, %s)' % (self.name, self.external_table)
+
   def _graph(self, context, views_only):
     context['offset'] += 1
     input_graph = str.join('\n', [i._graph(context, views_only) for i in self.inputs]).rstrip()
@@ -66,6 +69,9 @@ INSERT OVERWRITE TABLE {database}.{name}
     ).strip()]
 
 class Select(Statement):
+  def __str__(self):
+    return 'Select(%s, %s)' % (self.name)
+
   def run_hql(self):
     return ['''
 {command_hql}

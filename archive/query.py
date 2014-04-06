@@ -19,26 +19,6 @@ class Query(Utilities):
       'references': {},
     }, views_only)
 
-  def stats(self):
-    stats = self._stats({
-      'archive': {
-        'depth': 0,
-        'current_depth': 0,
-      },
-      'databases': {
-        'unique_databases': set(),
-        'references': {},
-      },
-      'queries': {
-        'unique_queries': set(),
-        'references': {},
-      }
-    })
-    stats['archive']['databases'] = len(stats['databases']['unique_databases'])
-    stats['archive']['queries'] = len(stats['queries']['unique_queries'])
-    stats['archive'].pop('current_depth', None)
-    return stats
-
   def hql(self):
     template = self.archive.env.get_template(self.template)
     inputs = dict([(i.name, i.qualified_name()) for i in self.inputs])

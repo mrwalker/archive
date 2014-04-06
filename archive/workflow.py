@@ -20,7 +20,7 @@ class DDLWorkflow:
     raise RuntimeError('Implemented in subclasses')
 
   def drop_all_hql(self):
-    unique_databases = self.stats()['databases']['unique_databases']
+    unique_databases = self.stats['databases']['unique_databases']
     return str.join('\n', ['DROP DATABASE IF EXISTS %s CASCADE;' % d for d in unique_databases])
 
   def drop_tables(self):

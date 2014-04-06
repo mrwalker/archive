@@ -50,7 +50,7 @@ class TestArchive:
 
   def test_stats(self):
     self.archive.add(self.events)
-    stats = self.archive.stats()
+    stats = self.archive.optimize()
     assert_equal(1, stats['archive']['databases'])
     assert_equal(1, stats['archive']['depth'])
     assert_equal(1, stats['archive']['queries'])

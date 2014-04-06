@@ -26,7 +26,7 @@ class Relation(Query, DDLWorkflow):
       graph_str = '%s%s\n%s' % ('\t' * context['offset'], self.qualified_name(), input_graph)
       return graph_str.rstrip()
 
-  def _stats(self):
+  def _stats(self, views_only):
     stats = self.archive.stats
 
     stats['archive']['current_depth'] += 1
@@ -45,8 +45,9 @@ class Relation(Query, DDLWorkflow):
       stats['queries']['references'][self.name] = 0
     stats['queries']['references'][self.name] += 1
 
-    for i in self.inputs:
-      i._stats()
+    if stats['queries']['references'][self.name] <= 1:
+      for i in self.inputs:
+        i._stats(views_only)
 
     stats['archive']['current_depth'] -= 1
     return stats
@@ -98,8 +99,6 @@ class Relation(Query, DDLWorkflow):
     return 'Aborting'
 
   def create_hql(self):
-    # Used only to set view_or_table
-    self.archive.graph(views_only = False)
     return self._create_hql([])
 
   def _create_hql(self, created):
@@ -113,7 +112,7 @@ class Relation(Query, DDLWorkflow):
 
   def _create_all_hql(self, views_only = False):
     # Used only to set view_or_table
-    self.archive.graph(views_only = views_only)
+    self.archive.optimize(views_only = views_only)
     return self._create_sub_hql([])
 
   def _create_sub_hql(self, created):
@@ -178,8 +177,6 @@ class ViewUntilTable(Relation):
       context['views'].append(self.qualified_name())
 
   def drop_hql(self):
-    # Used only to set view_or_table
-    self.archive.graph(views_only = False)
     return 'DROP %s IF EXISTS %s;' % (
       self.view_or_table,
       self.qualified_name()
@@ -202,22 +199,22 @@ CREATE {view_or_table} IF NOT EXISTS {database}.{name} AS
       hql = self.hql(),
     ).strip()
 
-  def _graph(self, context, views_only):
-    graph_str = Relation._graph(self, context, views_only)
+  def _stats(self, views_only):
+    stats = Relation._stats(self, views_only)
 
-    if not views_only and context['references'][self.name] >= self.table_threshold:
+    if not views_only and stats['queries']['references'][self.name] >= self.table_threshold:
       self.view_or_table = 'TABLE'
     else:
       self.view_or_table = 'VIEW'
 
-    return graph_str
+    return stats
 
 class Table(ViewUntilTable):
-  def _graph(self, context, views_only):
+  def _stats(self, views_only):
     self.view_or_table = 'TABLE' if not views_only else 'VIEW'
-    return Relation._graph(self, context, views_only)
+    return Relation._stats(self, views_only)
 
 class View(ViewUntilTable):
-  def _graph(self, context, views_only):
+  def _stats(self, views_only):
     self.view_or_table = 'VIEW'
-    return Relation._graph(self, context, views_only)
+    return Relation._stats(self, views_only)

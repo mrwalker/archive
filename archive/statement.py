@@ -10,7 +10,7 @@ class Statement(Query, DMLWorkflow):
     graph_str = '%s[%s]\n%s' % ('\t' * context['offset'], self.name, input_graph)
     return graph_str.rstrip()
 
-  def _stats(self):
+  def _stats(self, views_only):
     stats = self.archive.stats
 
     stats['archive']['current_depth'] += 1
@@ -20,7 +20,7 @@ class Statement(Query, DMLWorkflow):
     )
 
     for i in self.inputs:
-      i._stats()
+      i._stats(views_only)
 
     stats['archive']['current_depth'] -= 1
     return stats
@@ -47,6 +47,10 @@ class InsertOverwrite(Statement):
 
     graph_str = '%s[%s]\n%s\n%s' % ('\t' * context['offset'], self.name, input_graph, external_table_graph)
     return graph_str
+
+  def _stats(self, views_only):
+    Statement._stats(self, views_only)
+    stats = self.external_table._stats(views_only)
 
   def run_hql(self):
     return ['''

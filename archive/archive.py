@@ -36,7 +36,7 @@ class Archive(DDLWorkflow, DMLWorkflow, Utilities):
       }
     }
     for r in self.queries.values():
-      r._stats()
+      r._stats(views_only)
 
     self.stats['archive']['databases'] = len(self.stats['databases']['unique_databases'])
     self.stats['archive']['queries'] = len(self.stats['queries']['unique_queries'])
@@ -69,8 +69,6 @@ class Archive(DDLWorkflow, DMLWorkflow, Utilities):
       self._validate(i)
 
   def show(self):
-    # Used only to set view_or_table
-    self.graph(views_only = False)
     context = {
       'tables': [],
       'views': [],
@@ -132,9 +130,6 @@ Statements:
     return 'Aborting'
 
   def drop_tables_hql(self):
-    # Used only to set view_or_table
-    self.graph(views_only = False)
-
     # Look for tables
     tables = [t for t in self.queries.values() if hasattr(t, 'view_or_table') and t.view_or_table == 'TABLE']
 
@@ -161,7 +156,7 @@ Statements:
 
   def _create_all_hql(self, views_only = False):
     # Used only to set view_or_table
-    self.graph(views_only = views_only)
+    self.optimize(views_only = views_only)
     created = []
     return list(itertools.chain(*[query._create_sub_hql(created) for query in self.queries.values()]))
 

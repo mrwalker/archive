@@ -34,7 +34,7 @@ class TestExternalTable:
       'events',
       partitioned = True
     ))
-    stats = events.stats()
+    stats = self.archive.optimize()
     assert_equal(1, stats['archive']['databases'])
     assert_equal(1, stats['archive']['depth'])
     assert_equal(1, stats['archive']['queries'])

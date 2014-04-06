@@ -128,7 +128,7 @@ Statements:
   def drop_tables(self):
     query = self.drop_tables_hql()
     if self._warn(query):
-      return self.archive.hive.run_sync(query)
+      return self.hive.run_sync(query)
     return 'Aborting'
 
   def drop_tables_hql(self):

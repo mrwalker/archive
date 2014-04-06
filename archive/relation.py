@@ -134,7 +134,13 @@ class ExternalTable(Relation):
   def _show(self, context):
     context['external_tables'].append(self.qualified_name())
 
-  def _recover_partitions_hql(self):
+  def recover_partitions(self):
+    query = self.recover_partitions_hql()
+    if self._warn(query):
+      return self.archive.hive.run_sync(query)
+    return 'Aborting'
+
+  def recover_partitions_hql(self):
     if self.partitioned:
       return 'ALTER TABLE `{database}.{name}` RECOVER PARTITIONS;'.format(
         database = self.database,
@@ -156,7 +162,7 @@ CREATE EXTERNAL TABLE IF NOT EXISTS {database}.{name}
       database = self.database,
       name = self.name,
       hql = self.hql(),
-      recover_partitions_hql = self._recover_partitions_hql()
+      recover_partitions_hql = self.recover_partitions_hql()
     ).strip()
 
 class ViewUntilTable(Relation):

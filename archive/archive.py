@@ -20,6 +20,29 @@ class Archive(DDLWorkflow, DMLWorkflow, Utilities):
     self.hive = hive
     self.queries = collections.OrderedDict()
 
+  def optimize(self, views_only = False):
+    self.stats = {
+      'archive': {
+        'depth': 0,
+        'current_depth': 0,
+      },
+      'databases': {
+        'unique_databases': set(),
+        'references': {},
+      },
+      'queries': {
+        'unique_queries': set(),
+        'references': {},
+      }
+    }
+    for r in self.queries.values():
+      r._stats()
+
+    self.stats['archive']['databases'] = len(self.stats['databases']['unique_databases'])
+    self.stats['archive']['queries'] = len(self.stats['queries']['unique_queries'])
+    self.stats['archive'].pop('current_depth', None)
+    return self.stats
+
   def lookup(self, query_name):
     return self.queries[query_name]
 
@@ -95,29 +118,6 @@ Statements:
       graph_str += '\n%s' % r._graph(context, views_only)
 
     return graph_str
-
-  def stats(self):
-    stats = {
-      'archive': {
-        'depth': 0,
-        'current_depth': 0,
-      },
-      'databases': {
-        'unique_databases': set(),
-        'references': {},
-      },
-      'queries': {
-        'unique_queries': set(),
-        'references': {},
-      }
-    }
-    for r in self.queries.values():
-      r._stats(stats)
-
-    stats['archive']['databases'] = len(stats['databases']['unique_databases'])
-    stats['archive']['queries'] = len(stats['queries']['unique_queries'])
-    stats['archive'].pop('current_depth', None)
-    return stats
 
   def drop_all(self):
     query = self.drop_all_hql()

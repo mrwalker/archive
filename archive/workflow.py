@@ -82,9 +82,6 @@ class Utilities:
   def graph(self):
     raise RuntimeError('Implemented in subclasses')
 
-  def stats(self):
-    raise RuntimeError('Implemented in subclasses')
-
   def _warn(self, hql):
     '''
     If warnings are enabled, generates an stdout warning about database

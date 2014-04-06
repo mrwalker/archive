@@ -10,7 +10,9 @@ class Statement(Query, DMLWorkflow):
     graph_str = '%s[%s]\n%s' % ('\t' * context['offset'], self.name, input_graph)
     return graph_str.rstrip()
 
-  def _stats(self, stats):
+  def _stats(self):
+    stats = self.archive.stats
+
     stats['archive']['current_depth'] += 1
     stats['archive']['depth'] = max(
       stats['archive']['depth'],
@@ -18,7 +20,7 @@ class Statement(Query, DMLWorkflow):
     )
 
     for i in self.inputs:
-      i._stats(stats)
+      i._stats()
 
     stats['archive']['current_depth'] -= 1
     return stats

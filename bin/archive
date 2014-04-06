@@ -41,8 +41,10 @@ archive = getattr(archive_module, 'archive')
 
 if args.relation_name:
   archive_or_relation = archive.lookup(args.relation_name)
+  stats = archive_or_relation.archive.optimize()
 else:
   archive_or_relation = archive
+  stats = archive_or_relation.optimize()
 
 archive_or_relation.args = args
 
@@ -57,7 +59,7 @@ multiple_outputs = [
 
 if args.command == 'stats':
   import pprint
-  pprint.pprint(archive_or_relation.stats())
+  pprint.pprint(stats)
 elif args.command in multiple_outputs:
   method = getattr(archive_or_relation, args.command)
   results = method()

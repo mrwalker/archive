@@ -26,7 +26,9 @@ class Relation(Query, DDLWorkflow):
       graph_str = '%s%s\n%s' % ('\t' * context['offset'], self.qualified_name(), input_graph)
       return graph_str.rstrip()
 
-  def _stats(self, stats):
+  def _stats(self):
+    stats = self.archive.stats
+
     stats['archive']['current_depth'] += 1
     stats['archive']['depth'] = max(
       stats['archive']['depth'],
@@ -44,7 +46,7 @@ class Relation(Query, DDLWorkflow):
     stats['queries']['references'][self.name] += 1
 
     for i in self.inputs:
-      i._stats(stats)
+      i._stats()
 
     stats['archive']['current_depth'] -= 1
     return stats

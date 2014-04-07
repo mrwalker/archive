@@ -17,7 +17,7 @@ class DDLWorkflow:
     Drops all databases of all members or dependencies.  Be careful with this;
     it's intended to give you a blank slate for development.
     '''
-    raise RuntimeError('Implemented in subclasses')
+    raise NotImplementedError('Implemented in subclasses')
 
   def drop_all_hql(self):
     unique_databases = self.stats['databases']['unique_databases']
@@ -27,10 +27,10 @@ class DDLWorkflow:
     '''
     Drops only tables, which allows them to be refreshed using build.
     '''
-    raise RuntimeError('Implemented in subclasses')
+    raise NotImplementedError('Implemented in subclasses')
 
   def drop_tables_hql(self):
-    raise RuntimeError('Implemented in subclasses')
+    raise NotImplementedError('Implemented in subclasses')
 
   def develop(self):
     '''
@@ -43,20 +43,20 @@ class DDLWorkflow:
     drop everything and use build to optimize some views into tables prior to
     scheduling refreshes and runs.
     '''
-    raise RuntimeError('Implemented in subclasses')
+    raise NotImplementedError('Implemented in subclasses')
 
   def develop_hql(self):
-    raise RuntimeError('Implemented in subclasses')
+    raise NotImplementedError('Implemented in subclasses')
 
   def build(self):
     '''
     Builds a new Hive.  External tables are created and their partitions
     recovered.  Relations are created and some are optimized as tables.
     '''
-    raise RuntimeError('Implemented in subclasses')
+    raise NotImplementedError('Implemented in subclasses')
 
   def build_hql(self):
-    raise RuntimeError('Implemented in subclasses')
+    raise NotImplementedError('Implemented in subclasses')
 
 class DMLWorkflow:
   '''
@@ -69,10 +69,10 @@ class DMLWorkflow:
     This can be used in conjunction with drop_tables/build to build scheduled
     data pipelines.
     '''
-    raise RuntimeError('Implemented in subclasses')
+    raise NotImplementedError('Implemented in subclasses')
 
   def run_hql(self):
-    raise RuntimeError('Implemented in subclasses')
+    raise NotImplementedError('Implemented in subclasses')
 
 class Utilities:
   '''
@@ -80,7 +80,7 @@ class Utilities:
   '''
 
   def graph(self):
-    raise RuntimeError('Implemented in subclasses')
+    raise NotImplementedError('Implemented in subclasses')
 
   def _warn(self, hql):
     '''

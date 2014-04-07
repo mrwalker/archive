@@ -26,7 +26,7 @@ class TestExternalTable:
       'events',
       partitioned = True
     ))
-    assert_equal('atomic.events', events.graph())
+    assert_equal('ExternalTable(atomic.events)', events.graph())
 
   def test_stats(self):
     events = self.archive.add(ExternalTable(

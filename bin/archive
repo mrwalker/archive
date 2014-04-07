@@ -1,70 +1,9 @@
 #! /usr/bin/env python
 
-'''
-Rudimentary command line tool for Archive.  Try:
-  ./bin/archive <your-archive-module> [your-relation] graph
-  ./bin/archive <your-archive-module> [your-relation] stats
-  ./bin/archive <your-archive-module> [your-relation] hql
-  ./bin/archive <your-archive-module> [your-relation] create_all_hql
-
-Where <your-archive-module> is of the form: "my.package.module" and
-[your-relation] is the unqualified name of the relation you want to operate on.
-'''
-
-import argparse
 import sys
-import importlib
+sys.path.extend(['.', 'archive'])
 
-parser = argparse.ArgumentParser(description='Command line tool for Archive.')
-parser.add_argument('archive_module',
-                    help='name of your archive module, in the form "my.package.module"')
-parser.add_argument('relation_name',
-                    help='name of relation to target (optional)')
-parser.add_argument('command',
-                    nargs='?',
-                    default=None,
-                    help='archive command to run')
-parser.add_argument('-n', '--no-warn',
-                    dest='no_warn',
-                    action='store_true',
-                    help='do not warn on create/drop/insert queries')
+from archive.commands import parser
 
 args = parser.parse_args()
-
-if not args.command and args.relation_name:
-    args.command = args.relation_name
-    args.relation_name = None
-
-sys.path.extend(['.', 'archive'])
-archive_module = importlib.import_module(args.archive_module)
-archive = getattr(archive_module, 'archive')
-
-if args.relation_name:
-  archive_or_relation = archive.lookup(args.relation_name)
-  stats = archive_or_relation.archive.optimize()
-else:
-  archive_or_relation = archive
-  stats = archive_or_relation.optimize()
-
-archive_or_relation.args = args
-
-multiple_outputs = [
-  'develop',
-  'develop_hql',
-  'build',
-  'build_hql',
-  'run',
-  'run_hql',
-]
-
-if args.command == 'stats':
-  import pprint
-  pprint.pprint(stats)
-elif args.command in multiple_outputs:
-  method = getattr(archive_or_relation, args.command)
-  results = method()
-  for result in results:
-    print result
-else:
-  method = getattr(archive_or_relation, args.command)
-  print method()
+args.func(args)

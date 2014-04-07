@@ -99,7 +99,8 @@ class Utilities:
     if self.args and 'no_warn' in self.args and not self.args.no_warn:
       if any([-1 != hql.find('DROP ') for hql in hqls]) or \
          any([-1 != hql.find('INSERT ') for hql in hqls]) or \
-         any([-1 != hql.find('CREATE ') for hql in hqls]):
+         any([-1 != hql.find('CREATE ') for hql in hqls]) or \
+         any([-1 != hql.find('ALTER ') for hql in hqls]):
          sys.stdout.write('This command will modify the database, are you sure you want to continue [y/n]? ')
          choice = raw_input().lower()
          return choice == 'y'

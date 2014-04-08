@@ -18,7 +18,11 @@ class Command(object):
     def run(self, args):
         archive_module = importlib.import_module(args.archive)
         archive = getattr(archive_module, 'archive')
+
+        # Propagate args everywhere
+        # TODO: clean this up
         archive.args = args
+        archive.hive.args = args
 
         # Make decision on which ViewUntilTables to materialize
         archive.optimize()

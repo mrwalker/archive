@@ -118,16 +118,10 @@ Statements:
     return graph_str
 
   def drop_all(self):
-    query = self.drop_all_hql()
-    if self._warn(query):
-      return self.hive.run_sync(query)
-    return 'Aborting'
+    return self.hive.run_sync(self.drop_all_hql())
 
   def drop_tables(self):
-    query = self.drop_tables_hql()
-    if self._warn(query):
-      return self.hive.run_sync(query)
-    return 'Aborting'
+    return self.hive.run_sync(self.drop_tables_hql())
 
   def drop_tables_hql(self):
     # Look for tables
@@ -137,19 +131,13 @@ Statements:
     return str.join('\n', ['DROP TABLE IF EXISTS %s;' % t.qualified_name() for t in tables])
 
   def develop(self):
-    queries = self.develop_hql()
-    if self._warn_all(queries):
-      return self.hive.run_all_sync(queries)
-    return ['Aborting']
+    return self.hive.run_all_sync(self.develop_hql())
 
   def develop_hql(self):
     return self._create_all_hql(views_only = True)
 
   def build(self):
-    queries = self.build_hql()
-    if self._warn_all(queries):
-      return self.hive.run_all_sync(queries)
-    return ['Aborting']
+    return self.hive.run_all_sync(self.build_hql())
 
   def build_hql(self):
     return self._create_all_hql(views_only = False)
@@ -161,11 +149,7 @@ Statements:
     return list(itertools.chain(*[query._create_sub_hql(created) for query in self.queries.values()]))
 
   def run(self):
-    queries = self.run_hql()
-    if self._warn_all(queries):
-      hive_job = self.hive.run_all_sync(queries)
-      return hive_job
-    return ['Aborting']
+    return self.hive.run_all_sync(self.run_hql())
 
   def run_hql(self):
     return list(itertools.chain(*[query.run_hql() for query in self.queries.values()]))

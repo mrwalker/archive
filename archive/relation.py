@@ -53,34 +53,22 @@ class Relation(Query, DDLWorkflow):
     return stats
 
   def drop_all(self):
-    query = self.drop_all_hql()
-    if self._warn(query):
-      return self.archive.hive.run_sync(query)
-    return 'Aborting'
+    return self.archive.hive.run_sync(self.drop_all_hql())
 
   def drop(self):
-    query = self.drop_hql()
-    if self._warn(query):
-      return self.archive.hive.run_sync(query)
-    return 'Aborting'
+    return self.archive.hive.run_sync(self.drop_hql())
 
   def drop_hql(self):
     return 'DROP TABLE IF EXISTS %s;' % self.qualified_name()
 
   def develop(self):
-    queries = self.develop_hql()
-    if self._warn_all(queries):
-      return self.archive.hive.run_all_sync(queries)
-    return ['Aborting']
+    return self.archive.hive.run_all_sync(self.develop_hql())
 
   def develop_hql(self):
     return self._create_all_hql(views_only = True)
 
   def build(self):
-    queries = self.build_hql()
-    if self._warn_all(queries):
-      return self.archive.hive.run_all_sync(queries)
-    return ['Aborting']
+    return self.archive.hive.run_all_sync(self.build_hql())
 
   def build_hql(self):
     return self._create_all_hql(views_only = False)
@@ -93,10 +81,7 @@ class Relation(Query, DDLWorkflow):
       return 'CREATE DATABASE IF NOT EXISTS %s;' % self.database
 
   def create(self):
-    query = self.create_hql()
-    if self._warn(query):
-      return self.archive.hive.run_sync(query)
-    return 'Aborting'
+    return self.archive.hive.run_sync(self.create_hql())
 
   def create_hql(self):
     return self._create_hql([])
@@ -137,10 +122,7 @@ class ExternalTable(Relation):
     context['external_tables'].append(self.qualified_name())
 
   def recover_partitions(self):
-    query = self.recover_partitions_hql()
-    if self._warn(query):
-      return self.archive.hive.run_sync(query)
-    return 'Aborting'
+    return self.archive.hive.run_sync(self.recover_partitions_hql())
 
   def recover_partitions_hql(self):
     if self.partitioned:

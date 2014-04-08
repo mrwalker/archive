@@ -81,28 +81,3 @@ class Utilities:
 
   def graph(self):
     raise NotImplementedError('Implemented in subclasses')
-
-  def _warn(self, hql):
-    '''
-    If warnings are enabled, generates an stdout warning about database
-    modifications contained within an HQL query. Returns a boolean
-    representing whether the warning was acknowledged positively.
-    '''
-    return self._warn_all([hql])
-
-  def _warn_all(self, hqls):
-    '''
-    If warnings are enabled, generates an stdout warning about database
-    modifications contained within a list of HQL queries. Returns a boolean
-    representing whether the warning was acknowledged positively.
-    '''
-    if self.args and 'no_warn' in self.args and not self.args.no_warn:
-      if any([-1 != hql.find('DROP ') for hql in hqls]) or \
-         any([-1 != hql.find('INSERT ') for hql in hqls]) or \
-         any([-1 != hql.find('CREATE ') for hql in hqls]) or \
-         any([-1 != hql.find('ALTER ') for hql in hqls]):
-         sys.stdout.write('This command will modify the database, are you sure you want to continue [y/n]? ')
-         choice = raw_input().lower()
-         return choice == 'y'
-
-    return True

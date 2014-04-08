@@ -29,10 +29,7 @@ class Statement(Query, DMLWorkflow):
     context['statements'].append(self.name)
 
   def run(self):
-    queries = self.run_hql()
-    if self._warn_all(queries):
-      return self.archive.hive.run_all_sync(queries)
-    return ['Aborting']
+    return self.archive.hive.run_all_sync(self.run_hql())
 
 class InsertOverwrite(Statement):
   def __init__(self, name, external_table, *inputs, **kwargs):

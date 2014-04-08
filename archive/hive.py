@@ -98,7 +98,13 @@ class Qubole(Hive):
   def run_sync(self, query, log_limit = 100):
     if self._warn(query):
       logger.info("Running query on Qubole backend: '%s...'" % query[0:log_limit])
-      hive_command = HiveCommand.run(query = query)
+
+      kwargs = {'query': query}
+      if 'label' in self.args:
+        kwargs['label'] = self.args.label
+
+      hive_command = HiveCommand.run(**kwargs)
+
       logger.info('Ran job: %s, Status: %s' % (hive_command.id, hive_command.status))
 
       # Notify caller if the command wasn't successful
@@ -113,7 +119,13 @@ class Qubole(Hive):
   def run_async(self, query, log_limit = 100):
     if self._warn(query):
       logger.info("Running query on Qubole backend: '%s...'" % query[0:log_limit])
-      hive_command = HiveCommand.create(query = query)
+
+      kwargs = {'query': query}
+      if 'label' in self.args:
+        kwargs['label'] = self.args.label
+
+      hive_command = HiveCommand.create(**kwargs)
+
       logger.info('Started job: %s, Status: %s' % (hive_command.id, hive_command.status))
       return hive_command
     else:
@@ -122,5 +134,11 @@ class Qubole(Hive):
 if __name__ == '__main__':
   hive = Qubole()
   hive.set_token(os.environ['QUBOLE_TOKEN'])
+
+  from argparse import Namespace
+  args = Namespace()
+  #args.label = 'prod'
+  hive.args = args
+
   hive_job = hive.run_sync('SHOW TABLES;')
   hive_job.get_results()

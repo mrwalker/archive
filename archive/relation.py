@@ -86,6 +86,12 @@ class Relation(Query, DDLWorkflow):
   def create_hql(self):
     return self._create_hql([])
 
+  def create_tables(self):
+    return self.archive.hive.run_all_sync(self.create_tables_hql())
+
+  def create_tables_hql(self):
+    return self._create_all_hql(views_only = False, create_tables_only = True)
+
   def _create_hql(self, created):
     return '''
 {command_hql}
@@ -95,18 +101,23 @@ class Relation(Query, DDLWorkflow):
       create_database_hql = self._create_database_hql(created)
     ).strip()
 
-  def _create_all_hql(self, views_only = False):
+  def _create_all_hql(self, views_only = False, create_tables_only = False):
     # Used only to set view_or_table
     self.archive.optimize(views_only = views_only)
-    return self._create_sub_hql([])
+    return self._create_sub_hql([], create_tables_only = create_tables_only)
 
-  def _create_sub_hql(self, created):
+  def _create_sub_hql(self, created, create_tables_only = False):
     if self in created:
       return []
     else:
-      inputs_create_hql = list(itertools.chain(*[i._create_sub_hql(created) for i in self.inputs]))
+      inputs_create_hql = list(itertools.chain(*[i._create_sub_hql(created, create_tables_only = create_tables_only) for i in self.inputs]))
       create_hql = self._create_hql(created)
-      inputs_create_hql.append(create_hql)
+
+      if not create_tables_only:
+        inputs_create_hql.append(create_hql)
+      elif create_tables_only and hasattr(self, 'view_or_table') and self.view_or_table == 'TABLE':
+        inputs_create_hql.append(create_hql)
+
       created.append(self)
       return inputs_create_hql
 

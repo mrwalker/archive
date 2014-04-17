@@ -76,7 +76,7 @@ class ShowCommand(ArchiveCommand):
 
     def handle_query(self, archive, query, args):
         raise NotImplementedError('show is not valid for queries')
-    
+
     def handle_archive(self, archive, args):
         print archive.show()
 
@@ -87,7 +87,7 @@ class GraphCommand(ArchiveCommand):
 
     def handle_query(self, archive, query, args):
         print query.graph()
-    
+
     def handle_archive(self, archive, args):
         print archive.graph()
 
@@ -98,7 +98,7 @@ class StatsCommand(ArchiveCommand):
 
     def handle_query(self, archive, query, args):
         raise NotImplementedError('stats is not valid for queries')
-    
+
     def handle_archive(self, archive, args):
         import pprint
         pprint.pprint(archive.stats)
@@ -110,7 +110,7 @@ class DropAllCommand(HiveCommand):
 
     def handle_query(self, archive, query, args):
         raise NotImplementedError('drop_all is not valid for queries')
-    
+
     def handle_archive(self, archive, args):
         if args.dry:
             print archive.drop_all_hql()
@@ -124,7 +124,7 @@ class DropTablesCommand(HiveCommand):
 
     def handle_query(self, archive, query, args):
         raise NotImplementedError('drop_tables is not valid for queries')
-    
+
     def handle_archive(self, archive, args):
         if args.dry:
             print archive.drop_tables_hql()
@@ -141,7 +141,7 @@ class DropCommand(HiveCommand):
             print query.drop_hql()
         else:
             query.drop()
-    
+
     def handle_archive(self, archive, args):
         raise NotImplementedError('drop is not valid for archives')
 
@@ -155,9 +155,25 @@ class CreateCommand(HiveCommand):
             print query.create_hql()
         else:
             query.create()
-    
+
     def handle_archive(self, archive, args):
         raise NotImplementedError('create is not valid for archives')
+
+class CreateTablesCommand(HiveCommand):
+    def __init__(self, subparsers):
+        self.parser = subparsers.add_parser('create_tables')
+        super(CreateTablesCommand, self).__init__()
+
+    def handle_query(self, archive, query, args):
+        if args.dry:
+            for result in query.create_tables_hql():
+                print result
+        else:
+            for result in query.create_tables():
+                print result
+
+    def handle_archive(self, archive, args):
+        raise NotImplementedError('create_tables is not valid for archives')
 
 class RecoverPartitionsCommand(HiveCommand):
     def __init__(self, subparsers):
@@ -169,7 +185,7 @@ class RecoverPartitionsCommand(HiveCommand):
             print query.recover_partitions_hql()
         else:
             query.recover_partitions()
-    
+
     def handle_archive(self, archive, args):
         raise NotImplementedError('recover_partitions is not valid for archives')
 
@@ -185,7 +201,7 @@ class DevelopCommand(HiveCommand):
         else:
             for result in query.develop():
                 print result
-    
+
     def handle_archive(self, archive, args):
         if args.dry:
             for result in archive.develop_hql():
@@ -206,7 +222,7 @@ class BuildCommand(HiveCommand):
         else:
             for result in query.build():
                 print result
-    
+
     def handle_archive(self, archive, args):
         if args.dry:
             for result in archive.build_hql():
@@ -227,7 +243,7 @@ class RunCommand(HiveCommand):
         else:
             for result in query.run():
                 print result
-    
+
     def handle_archive(self, archive, args):
         if args.dry:
             for result in archive.run_hql():
@@ -248,6 +264,7 @@ DropTablesCommand(subparsers)
 DropCommand(subparsers)
 
 CreateCommand(subparsers)
+CreateTablesCommand(subparsers)
 RecoverPartitionsCommand(subparsers)
 DevelopCommand(subparsers)
 BuildCommand(subparsers)

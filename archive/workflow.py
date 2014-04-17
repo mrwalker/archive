@@ -32,6 +32,18 @@ class DDLWorkflow:
   def drop_tables_hql(self):
     raise NotImplementedError('Implemented in subclasses')
 
+  def recover_all(self):
+    '''
+    Recovers partitions for all external tables.  This can be used if your
+    refresh scheme is to drop and re-create only tables.
+    '''
+    raise NotImplementedError('Implemented in subclasses')
+
+  def recover_all_hql(self):
+    _, show_context = self.show()
+    external_tables = show_context['external_tables']
+    return str.join('\n', ['ALTER TABLE `%s` RECOVER PARTITIONS;' % t for t in external_tables])
+
   def develop(self):
     '''
     Like build, but creates only views, not tables.  This allows you to develop

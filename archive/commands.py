@@ -78,7 +78,8 @@ class ShowCommand(ArchiveCommand):
         raise NotImplementedError('show is not valid for queries')
 
     def handle_archive(self, archive, args):
-        print archive.show()
+        show_output, _ = archive.show()
+        print show_output
 
 class GraphCommand(ArchiveCommand):
     def __init__(self, subparsers):
@@ -144,6 +145,20 @@ class DropCommand(HiveCommand):
 
     def handle_archive(self, archive, args):
         raise NotImplementedError('drop is not valid for archives')
+
+class RecoverAllCommand(HiveCommand):
+    def __init__(self, subparsers):
+        self.parser = subparsers.add_parser('recover_all')
+        super(RecoverAllCommand, self).__init__()
+
+    def handle_query(self, archive, query, args):
+        raise NotImplementedError('recover_all is not valid for queries')
+
+    def handle_archive(self, archive, args):
+        if args.dry:
+            print archive.recover_all_hql()
+        else:
+            archive.recover_all()
 
 class CreateCommand(HiveCommand):
     def __init__(self, subparsers):
@@ -262,6 +277,7 @@ StatsCommand(subparsers)
 DropAllCommand(subparsers)
 DropTablesCommand(subparsers)
 DropCommand(subparsers)
+RecoverAllCommand(subparsers)
 
 CreateCommand(subparsers)
 CreateTablesCommand(subparsers)

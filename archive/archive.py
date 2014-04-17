@@ -103,7 +103,7 @@ Statements:
       view_list = str.join('\n', sorted(context['views'])),
       external_table_list = str.join('\n', sorted(context['external_tables'])),
       statement_list = str.join('\n', sorted(context['statements']))
-    ).strip()
+    ).strip(), context
 
   def graph(self, views_only = False):
     context = {
@@ -129,6 +129,9 @@ Statements:
 
     # Drop them
     return str.join('\n', ['DROP TABLE IF EXISTS %s;' % t.qualified_name() for t in tables])
+
+  def recover_all(self):
+    return self.hive.run_sync(self.recover_all_hql())
 
   def develop(self):
     return self.hive.run_all_sync(self.develop_hql())

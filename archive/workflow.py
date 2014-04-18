@@ -40,9 +40,7 @@ class DDLWorkflow:
     raise NotImplementedError('Implemented in subclasses')
 
   def recover_all_hql(self):
-    _, show_context = self.show()
-    external_tables = show_context['external_tables']
-    return str.join('\n', ['ALTER TABLE `%s` RECOVER PARTITIONS;' % t for t in external_tables])
+    raise NotImplementedError('Implemented in subclasses')
 
   def develop(self):
     '''

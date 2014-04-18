@@ -133,6 +133,13 @@ Statements:
   def recover_all(self):
     return self.hive.run_sync(self.recover_all_hql())
 
+  def recover_all_hql(self):
+    # Look for partitioned external tables
+    tables = [t for t in self.queries.values() if hasattr(t, 'partitioned') and t.partitioned]
+
+    # Recover them
+    return str.join('\n', [t.recover_partitions_hql() for t in tables])
+
   def develop(self):
     return self.hive.run_all_sync(self.develop_hql())
 

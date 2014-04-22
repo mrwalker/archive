@@ -6,6 +6,8 @@ import logging
 logging.basicConfig(level = logging.INFO)
 logger = logging.getLogger(__name__)
 
+from requests.exceptions import ConnectionError
+
 from qds_sdk.qubole import Qubole as QDS
 from qds_sdk.commands import *
 
@@ -95,7 +97,10 @@ class Qubole(Hive):
   def set_token(self, api_token):
     QDS.configure(api_token = api_token)
 
-  def run_sync(self, query, log_limit = 100):
+  def backoff_poll_interval(self, multiple = 2):
+    QDS.configure(QDS.api_token, poll_interval = QDS.poll_interval * multiple)
+
+  def run_sync(self, query, log_limit = 100, retries = 3):
     if self._warn(query):
       logger.info("Running query on Qubole backend: '%s...'" % query[0:log_limit])
 
@@ -103,16 +108,28 @@ class Qubole(Hive):
       if 'label' in self.args:
         kwargs['label'] = self.args.label
 
-      hive_command = HiveCommand.run(**kwargs)
+      try:
+        hive_command = HiveCommand.run(**kwargs)
 
-      logger.info('Ran job: %s, Status: %s' % (hive_command.id, hive_command.status))
+        logger.info('Ran job: %s, Status: %s' % (hive_command.id, hive_command.status))
 
-      # Notify caller if the command wasn't successful
-      if not HiveCommand.is_success(hive_command.status):
-        logger.error(hive_command.get_log())
-        raise RuntimeError("Job %s failed or was cancelled, Status: %s\nCommand: '%s'" % (hive_command.id, hive_command.status, hive_command))
+        # Notify caller if the command wasn't successful
+        if not HiveCommand.is_success(hive_command.status):
+          logger.error(hive_command.get_log())
+          raise RuntimeError("Job %s failed or was cancelled, Status: %s\nCommand: '%s'" % (hive_command.id, hive_command.status, hive_command))
 
-      return hive_command
+        return hive_command
+      except ConnectionError as error:
+        if retries > 0:
+          self.backoff_poll_interval()
+          logger.error('Received ConnectionError: %s, Retrying with polling interval: %s (%s remaining)' % (
+            error,
+            QDS.poll_interval,
+            retries
+          ))
+          return self.run_sync(query, log_limit = log_limit, retries = retries - 1)
+        else:
+          logger.exception('Polling retries exhausted')
     else:
       return self.ABORT_MSG
 

@@ -6,6 +6,8 @@ import logging
 logging.basicConfig(level = logging.INFO)
 logger = logging.getLogger(__name__)
 
+import time
+
 from requests.exceptions import ConnectionError
 
 from qds_sdk.qubole import Qubole as QDS
@@ -100,6 +102,37 @@ class Qubole(Hive):
   def backoff_poll_interval(self, multiple = 2):
     QDS.configure(QDS.api_token, poll_interval = QDS.poll_interval * multiple)
 
+  def poll_with_retries(self, hive_command, retries = 3):
+    '''
+    A temporary work-around for connection failures while polling QDS.  See
+    qds_sdk.commands.Command#run for the original source of this code, prior to
+    retries with polling interval backoff.
+    '''
+    try:
+      while not HiveCommand.is_done(hive_command.status):
+          time.sleep(QDS.poll_interval)
+          hive_command = HiveCommand.find(hive_command.id)
+
+      logger.info('Ran job: %s, Status: %s' % (hive_command.id, hive_command.status))
+
+      # Notify caller if the command wasn't successful
+      if not HiveCommand.is_success(hive_command.status):
+        logger.error(hive_command.get_log())
+        raise RuntimeError("Job %s failed or was cancelled, Status: %s\nCommand: '%s'" % (hive_command.id, hive_command.status, hive_command))
+
+      return hive_command
+    except ConnectionError as error:
+      if retries > 0:
+        self.backoff_poll_interval()
+        logger.error('Received ConnectionError: %s, Retrying with polling interval: %s (%s remaining)' % (
+          error,
+          QDS.poll_interval,
+          retries
+        ))
+        return self.poll_with_retries(hive_command, retries = retries - 1)
+      else:
+        logger.exception('Polling retries exhausted')
+
   def run_sync(self, query, log_limit = 100, retries = 3):
     if self._warn(query):
       logger.info("Running query on Qubole backend: '%s...'" % query[0:log_limit])
@@ -108,28 +141,8 @@ class Qubole(Hive):
       if 'label' in self.args:
         kwargs['label'] = self.args.label
 
-      try:
-        hive_command = HiveCommand.run(**kwargs)
-
-        logger.info('Ran job: %s, Status: %s' % (hive_command.id, hive_command.status))
-
-        # Notify caller if the command wasn't successful
-        if not HiveCommand.is_success(hive_command.status):
-          logger.error(hive_command.get_log())
-          raise RuntimeError("Job %s failed or was cancelled, Status: %s\nCommand: '%s'" % (hive_command.id, hive_command.status, hive_command))
-
-        return hive_command
-      except ConnectionError as error:
-        if retries > 0:
-          self.backoff_poll_interval()
-          logger.error('Received ConnectionError: %s, Retrying with polling interval: %s (%s remaining)' % (
-            error,
-            QDS.poll_interval,
-            retries
-          ))
-          return self.run_sync(query, log_limit = log_limit, retries = retries - 1)
-        else:
-          logger.exception('Polling retries exhausted')
+      hive_command = HiveCommand.create(**kwargs)
+      return self.poll_with_retries(hive_command)
     else:
       return self.ABORT_MSG
 

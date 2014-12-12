@@ -29,23 +29,6 @@ class TestExternalTable:
         ))
         assert_equal('ExternalTable(atomic.events)', events.graph())
 
-    def test_stats(self):
-        events = self.archive.add(ExternalTable(
-            'atomic',
-            'events',
-            partitioned=True
-        ))
-        stats = self.archive.optimize()
-        assert_equal(1, stats['archive']['databases'])
-        assert_equal(1, stats['archive']['depth'])
-        assert_equal(1, stats['archive']['queries'])
-
-        assert_equal(1, stats['databases']['references']['atomic'])
-        assert_equal(set(['atomic']), stats['databases']['unique_databases'])
-
-        assert_equal(1, stats['queries']['references']['events'])
-        assert_equal(set(['events']), stats['queries']['unique_queries'])
-
     def test_partitioning(self):
         pattern = re.compile('.*RECOVER PARTITIONS', re.DOTALL)
 

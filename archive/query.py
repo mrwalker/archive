@@ -7,7 +7,7 @@ class Query(Utilities):
 
   def __init__(self, name, *inputs, **kwargs):
     self.name = name
-    self.template = '%s.hql' % self.name
+    self.template = '%s.sql' % self.name
     self.inputs = inputs
     self.settings = kwargs.get('settings', {})
     self.resources = kwargs.get('resources', [])

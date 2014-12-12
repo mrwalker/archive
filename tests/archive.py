@@ -17,7 +17,11 @@ archive = Archive('tests', hive)
 
 atomic_database = 'atomic'
 inputs_database = 'inputs'
+events_database = 'events'
+dynamo_database = 'dynamo'
 
 # Order is important
 databases.atomic(archive, atomic_database)
 databases.inputs(archive, inputs_database)
+databases.events(archive, events_database)
+databases.dynamo(archive, dynamo_database)

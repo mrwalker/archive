@@ -35,8 +35,60 @@ def inputs(archive, inputs_database):
         'insert_overwrite_partitioned_events',
         partitioned_events,
         events,
-        settings = {
+        settings={
             'hive.exec.dynamic.partition.mode': 'nonstrict',
             'hive.enforce.bucketing': 'true',
+        }
+    ))
+
+def events(archive, events_database):
+    partitioned_events = archive.lookup('partitioned_events')
+
+    searches = archive.add(View(
+        events_database,
+        'searches',
+        partitioned_events
+    ))
+    impressions = archive.add(View(
+        events_database,
+        'impressions',
+        searches
+    ))
+
+    result_views = archive.add(View(
+        events_database,
+        'result_views',
+        partitioned_events
+    ))
+
+def dynamo(archive, dynamo_database):
+    impressions = archive.lookup('impressions')
+    result_views = archive.lookup('result_views')
+
+    stage_dynamo_result_stats = archive.add(Table(
+        dynamo_database,
+        'stage_dynamo_result_stats',
+        impressions,
+        result_views
+    ))
+
+    dynamo_result_stats = archive.add(ExternalTable(
+        dynamo_database,
+        'dynamo_result_stats',
+        resources=[
+            {'type': 'JAR', 'path': 's3://paid-qubole/dynamoDB/jars/hadoop-dynamodb-0.0.1-SNAPSHOT-jar-with-dependencies.jar'},
+        ]
+    ))
+    insert_overwrite_dynamo_result_stats = archive.add(InsertOverwrite(
+        'insert_overwrite_dynamo_result_stats',
+        dynamo_result_stats,
+        stage_dynamo_result_stats,
+        resources=[
+            {'type': 'JAR', 'path': 's3://paid-qubole/dynamoDB/jars/hadoop-dynamodb-0.0.1-SNAPSHOT-jar-with-dependencies.jar'},
+        ],
+        settings={
+            'hive.mapred.map.tasks.speculative.execution': 'false',
+            'hive.mapred.reduce.tasks.speculative.execution': 'false',
+            'hive.exec.reducers.max': '1',
         }
     ))

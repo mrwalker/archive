@@ -11,7 +11,7 @@ class Relation(Query, DDLWorkflow):
     def qualified_name(self):
         return '%s.%s' % (self.database, self.name)
 
-    def _graph(self, context, views_only):
+    def _graph(self, context, **kwargs):
         if not context['references'].has_key(self.name):
             context['references'][self.name] = 0
         context['references'][self.name] += 1
@@ -20,13 +20,13 @@ class Relation(Query, DDLWorkflow):
             return '%s%s ...' % ('\t' * context['offset'], self)
         else:
             context['offset'] += 1
-            input_graph = str.join('\n', [i._graph(context, views_only) for i in self.inputs]).rstrip()
+            input_graph = str.join('\n', [i._graph(context, **kwargs) for i in self.inputs]).rstrip()
             context['offset'] -= 1
 
             graph_str = '%s%s\n%s' % ('\t' * context['offset'], self, input_graph)
             return graph_str.rstrip()
 
-    def _stats(self, views_only):
+    def _stats(self, **kwargs):
         stats = self.archive.stats
 
         stats['archive']['current_depth'] += 1
@@ -47,7 +47,7 @@ class Relation(Query, DDLWorkflow):
 
         if stats['queries']['references'][self.name] <= 1:
             for i in self.inputs:
-                i._stats(views_only)
+                i._stats(**kwargs)
 
         stats['archive']['current_depth'] -= 1
         return stats
@@ -61,17 +61,11 @@ class Relation(Query, DDLWorkflow):
     def drop_hql(self):
         return 'DROP TABLE IF EXISTS %s;' % self.qualified_name()
 
-    def develop(self):
-        return self.archive.hive.run_all_sync(self.develop_hql())
-
-    def develop_hql(self):
-        return self._create_all_hql(views_only=True)
-
     def build(self):
         return self.archive.hive.run_all_sync(self.build_hql())
 
     def build_hql(self):
-        return self._create_all_hql(views_only=False)
+        return self._create_all_hql()
 
     def _create_database_hql(self, created):
         created_databases = set([c.database for c in created])
@@ -90,7 +84,7 @@ class Relation(Query, DDLWorkflow):
         return self.archive.hive.run_all_sync(self.create_tables_hql())
 
     def create_tables_hql(self):
-        return self._create_all_hql(views_only=False, create_tables_only=True)
+        return self._create_all_hql(create_tables_only=True)
 
     def _create_hql(self, created):
         return '''
@@ -101,18 +95,17 @@ class Relation(Query, DDLWorkflow):
             create_database_hql=self._create_database_hql(created)
         ).strip()
 
-    def _create_all_hql(self, views_only=False, create_tables_only=False):
-        # Used only to set view_or_table
-        self.archive.optimize(views_only=views_only)
-        return self._create_sub_hql([], create_tables_only=create_tables_only)
+    def _create_all_hql(self, **kwargs):
+        return self._create_sub_hql([], **kwargs)
 
-    def _create_sub_hql(self, created, create_tables_only=False):
+    def _create_sub_hql(self, created, **kwargs):
         if self in created:
             return []
         else:
-            inputs_create_hql = list(itertools.chain(*[i._create_sub_hql(created, create_tables_only=create_tables_only) for i in self.inputs]))
+            inputs_create_hql = list(itertools.chain(*[i._create_sub_hql(created, **kwargs) for i in self.inputs]))
             create_hql = self._create_hql(created)
 
+            create_tables_only = kwargs.get('create_tables_only', False)
             if not create_tables_only:
                 inputs_create_hql.append(create_hql)
             elif create_tables_only and hasattr(self, 'view_or_table') and self.view_or_table == 'TABLE':
@@ -160,15 +153,10 @@ CREATE EXTERNAL TABLE IF NOT EXISTS {database}.{name}
             recover_partitions_hql=self.recover_partitions_hql()
         ).strip()
 
-class ViewUntilTable(Relation):
-    def __init__(self, database, name, *inputs, **kwargs):
+class ViewOrTable(Relation):
+    def __init__(self, database, name, view_or_table, *inputs, **kwargs):
+        self.view_or_table = view_or_table
         Relation.__init__(self, database, name, *inputs, **kwargs)
-        self.view_or_table = None
-        self.table_threshold = 3
-
-    def __str__(self):
-        camel_type = self.view_or_table.lower().capitalize()
-        return '%s(%s) ViewUntilTable' % (camel_type, self.qualified_name())
 
     def _show(self, context):
         if self.view_or_table == 'TABLE':
@@ -183,9 +171,6 @@ class ViewUntilTable(Relation):
         )
 
     def _create_hql(self, created):
-        if not self.view_or_table:
-            raise RuntimeError('Create type must be determined before calling ViewUntilTable#_create_hql')
-
         return '''
 {super_hql}
 CREATE {view_or_table} IF NOT EXISTS {database}.{name} AS
@@ -199,28 +184,17 @@ CREATE {view_or_table} IF NOT EXISTS {database}.{name} AS
             hql=self.hql(),
         ).strip()
 
-    def _stats(self, views_only):
-        stats = Relation._stats(self, views_only)
-
-        if not views_only and stats['queries']['references'][self.name] >= self.table_threshold:
-            self.view_or_table = 'TABLE'
-        else:
-            self.view_or_table = 'VIEW'
-
+    def _stats(self, **kwargs):
+        stats = Relation._stats(self, **kwargs)
         return stats
 
-class Table(ViewUntilTable):
-    def _stats(self, views_only):
-        self.view_or_table = 'TABLE' if not views_only else 'VIEW'
-        return Relation._stats(self, views_only)
-
     def __str__(self):
-        return 'Table(%s)' % self.qualified_name()
+        return '%s(%s)' % (self.view_or_table.title(), self.qualified_name())
 
-class View(ViewUntilTable):
-    def _stats(self, views_only):
-        self.view_or_table = 'VIEW'
-        return Relation._stats(self, views_only)
+class Table(ViewOrTable):
+    def __init__(self, database, name, *inputs, **kwargs):
+        ViewOrTable.__init__(self, database, name, 'TABLE', *inputs, **kwargs)
 
-    def __str__(self):
-        return 'View(%s)' % self.qualified_name()
+class View(ViewOrTable):
+    def __init__(self, database, name, *inputs, **kwargs):
+        ViewOrTable.__init__(self, database, name, 'VIEW', *inputs, **kwargs)

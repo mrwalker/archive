@@ -12,11 +12,11 @@ class Query(Utilities):
         self.resources = kwargs.get('resources', [])
         self.functions = kwargs.get('functions', [])
 
-    def graph(self, views_only=False):
+    def graph(self, **kwargs):
         return self._graph({
             'offset': 0,
             'references': {},
-        }, views_only)
+        }, **kwargs)
 
     def hql(self):
         template = self.archive.env.get_template(self.template)

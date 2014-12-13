@@ -2,15 +2,15 @@ from query import Query
 from workflow import DMLWorkflow
 
 class Statement(Query, DMLWorkflow):
-    def _graph(self, context, views_only):
+    def _graph(self, context, **kwargs):
         context['offset'] += 1
-        input_graph = str.join('\n', [i._graph(context, views_only) for i in self.inputs]).rstrip()
+        input_graph = str.join('\n', [i._graph(context, **kwargs) for i in self.inputs]).rstrip()
         context['offset'] -= 1
 
         graph_str = '%s[%s]\n%s' % ('\t' * context['offset'], self.name, input_graph)
         return graph_str.rstrip()
 
-    def _stats(self, views_only):
+    def _stats(self, **kwargs):
         stats = self.archive.stats
 
         stats['archive']['current_depth'] += 1
@@ -20,7 +20,7 @@ class Statement(Query, DMLWorkflow):
         )
 
         for i in self.inputs:
-            i._stats(views_only)
+            i._stats(**kwargs)
 
         stats['archive']['current_depth'] -= 1
         return stats
@@ -39,18 +39,18 @@ class InsertOverwrite(Statement):
     def __str__(self):
         return 'InsertOverwrite(%s, %s)' % (self.name, self.external_table)
 
-    def _graph(self, context, views_only):
+    def _graph(self, context, **kwargs):
         context['offset'] += 1
-        input_graph = str.join('\n', [i._graph(context, views_only) for i in self.inputs]).rstrip()
-        external_table_graph = self.external_table._graph(context, views_only)
+        input_graph = str.join('\n', [i._graph(context, **kwargs) for i in self.inputs]).rstrip()
+        external_table_graph = self.external_table._graph(context, **kwargs)
         context['offset'] -= 1
 
         graph_str = '%s[%s]\n%s\n%s' % ('\t' * context['offset'], self.name, input_graph, external_table_graph)
         return graph_str
 
-    def _stats(self, views_only):
-        Statement._stats(self, views_only)
-        stats = self.external_table._stats(views_only)
+    def _stats(self, **kwargs):
+        Statement._stats(self, **kwargs)
+        stats = self.external_table._stats(**kwargs)
 
     def run_hql(self):
         return ['''

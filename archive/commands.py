@@ -204,27 +204,6 @@ class RecoverPartitionsCommand(HiveCommand):
     def handle_archive(self, archive, args):
         raise NotImplementedError('recover_partitions is not valid for archives')
 
-class DevelopCommand(HiveCommand):
-    def __init__(self, subparsers):
-        self.parser = subparsers.add_parser('develop')
-        super(DevelopCommand, self).__init__()
-
-    def handle_query(self, archive, query, args):
-        if args.dry:
-            for result in query.develop_hql():
-                print result
-        else:
-            for result in query.develop():
-                print result
-
-    def handle_archive(self, archive, args):
-        if args.dry:
-            for result in archive.develop_hql():
-                print result
-        else:
-            for result in archive.develop():
-                print result
-
 class BuildCommand(HiveCommand):
     def __init__(self, subparsers):
         self.parser = subparsers.add_parser('build')
@@ -282,6 +261,5 @@ RecoverAllCommand(subparsers)
 CreateCommand(subparsers)
 CreateTablesCommand(subparsers)
 RecoverPartitionsCommand(subparsers)
-DevelopCommand(subparsers)
 BuildCommand(subparsers)
 RunCommand(subparsers)

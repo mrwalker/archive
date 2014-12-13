@@ -19,7 +19,7 @@ class Archive(DDLWorkflow, DMLWorkflow, Utilities):
         self.hive = hive
         self.queries = collections.OrderedDict()
 
-    def optimize(self, views_only=False):
+    def optimize(self, **kwargs):
         self.stats = {
             'archive': {
                 'depth': 0,
@@ -35,7 +35,7 @@ class Archive(DDLWorkflow, DMLWorkflow, Utilities):
             }
         }
         for r in self.queries.values():
-            r._stats(views_only)
+            r._stats(**kwargs)
 
         self.stats['archive']['databases'] = len(self.stats['databases']['unique_databases'])
         self.stats['archive']['queries'] = len(self.stats['queries']['unique_queries'])
@@ -104,7 +104,7 @@ Statements:
             statement_list=str.join('\n', sorted(context['statements']))
         ).strip(), context
 
-    def graph(self, views_only=False):
+    def graph(self, **kwargs):
         context = {
             'offset': 0,
             'references': {},
@@ -112,7 +112,7 @@ Statements:
 
         graph_str = 'Archive: %s' % self.package
         for r in self.queries.values():
-            graph_str += '\n%s' % r._graph(context, views_only)
+            graph_str += '\n%s' % r._graph(context, **kwargs)
 
         return graph_str
 
@@ -139,23 +139,15 @@ Statements:
         # Recover them
         return str.join('\n', [t.recover_partitions_hql() for t in tables])
 
-    def develop(self):
-        return self.hive.run_all_sync(self.develop_hql())
-
-    def develop_hql(self):
-        return self._create_all_hql(views_only=True)
-
     def build(self):
         return self.hive.run_all_sync(self.build_hql())
 
     def build_hql(self):
-        return self._create_all_hql(views_only=False)
+        return self._create_all_hql()
 
-    def _create_all_hql(self, views_only=False):
-        # Used only to set view_or_table
-        self.optimize(views_only=views_only)
+    def _create_all_hql(self, **kwargs):
         created = []
-        return list(itertools.chain(*[query._create_sub_hql(created) for query in self.queries.values()]))
+        return list(itertools.chain(*[query._create_sub_hql(created, **kwargs) for query in self.queries.values()]))
 
     def run(self):
         return self.hive.run_all_sync(self.run_hql())

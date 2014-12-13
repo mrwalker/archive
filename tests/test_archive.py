@@ -4,7 +4,7 @@ from nose.tools import *
 
 from archive.hive import Hive
 from archive.archive import Archive
-from archive.relation import ExternalTable, ViewUntilTable
+from archive.relation import ExternalTable, View
 
 class TestArchive:
     def setup(self):
@@ -35,12 +35,12 @@ class TestArchive:
     @raises(RuntimeError)
     def test_missing_input(self):
         self.archive.add(self.events)
-        doesnotexist = ViewUntilTable(
+        doesnotexist = View(
             'atomic',
             'doesnotexist',
             self.events
         )
-        self.archive.add(ViewUntilTable(
+        self.archive.add(View(
             'atomic',
             'missing_input',
             doesnotexist

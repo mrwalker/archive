@@ -1,8 +1,8 @@
 '''
 Workflow methods apply both to Archives and Queries.  They encapsulate the
-process of developing, building, and then refreshing your Hive.  The intent
-is to allow a Hive to serve as the backend for an automated process for
-running data pipelines.
+process of building and then refreshing your Hive.  The intent is to allow a
+Hive to serve as the backend for an automated process for running data
+pipelines.
 '''
 
 import sys
@@ -41,26 +41,10 @@ class DDLWorkflow:
     def recover_all_hql(self):
         raise NotImplementedError('Implemented in subclasses')
 
-    def develop(self):
-        '''
-        Like build, but creates only views, not tables.  This allows you to develop
-        new queries and allows Hive to check their syntax and schema prior to
-        actually building the Hive.
-
-        All relations except the immediate target are undisturbed by this method,
-        allowing you to add new ones to an existing Hive.  However, you may want to
-        drop everything and use build to optimize some views into tables prior to
-        scheduling refreshes and runs.
-        '''
-        raise NotImplementedError('Implemented in subclasses')
-
-    def develop_hql(self):
-        raise NotImplementedError('Implemented in subclasses')
-
     def build(self):
         '''
         Builds a new Hive.  External tables are created and their partitions
-        recovered.  Relations are created and some are optimized as tables.
+        recovered.  Relations are created and tables populated.
         '''
         raise NotImplementedError('Implemented in subclasses')
 

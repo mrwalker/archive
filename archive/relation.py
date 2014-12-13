@@ -6,7 +6,7 @@ from workflow import DDLWorkflow
 class Relation(Query, DDLWorkflow):
     def __init__(self, database, name, *inputs, **kwargs):
         self.database = database
-        Query.__init__(self, name, *inputs, **kwargs)
+        super(Relation, self).__init__(name, *inputs, **kwargs)
 
     def qualified_name(self):
         return '%s.%s' % (self.database, self.name)
@@ -116,7 +116,7 @@ class Relation(Query, DDLWorkflow):
 
 class ExternalTable(Relation):
     def __init__(self, database, name, *inputs, **kwargs):
-        Relation.__init__(self, database, name, *inputs, **kwargs)
+        super(ExternalTable, self).__init__(database, name, *inputs, **kwargs)
         self.partitioned = kwargs.get('partitioned', False)
 
     def __str__(self):
@@ -156,7 +156,7 @@ CREATE EXTERNAL TABLE IF NOT EXISTS {database}.{name}
 class ViewOrTable(Relation):
     def __init__(self, database, name, view_or_table, *inputs, **kwargs):
         self.view_or_table = view_or_table
-        Relation.__init__(self, database, name, *inputs, **kwargs)
+        super(ViewOrTable, self).__init__(database, name, *inputs, **kwargs)
 
     def _show(self, context):
         if self.view_or_table == 'TABLE':
@@ -193,8 +193,8 @@ CREATE {view_or_table} IF NOT EXISTS {database}.{name} AS
 
 class Table(ViewOrTable):
     def __init__(self, database, name, *inputs, **kwargs):
-        ViewOrTable.__init__(self, database, name, 'TABLE', *inputs, **kwargs)
+        super(Table, self).__init__(database, name, 'TABLE', *inputs, **kwargs)
 
 class View(ViewOrTable):
     def __init__(self, database, name, *inputs, **kwargs):
-        ViewOrTable.__init__(self, database, name, 'VIEW', *inputs, **kwargs)
+        super(View, self).__init__(database, name, 'VIEW', *inputs, **kwargs)

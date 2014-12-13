@@ -7,7 +7,7 @@ pipelines.
 
 import sys
 
-class DDLWorkflow:
+class DDLWorkflow(object):
     '''
     DDL workflow methods (create and delete)
     '''
@@ -51,7 +51,7 @@ class DDLWorkflow:
     def build_hql(self):
         raise NotImplementedError('Implemented in subclasses')
 
-class DMLWorkflow:
+class DMLWorkflow(object):
     '''
     DML workflow methods (currently only select and insert overwrite)
     '''
@@ -66,7 +66,7 @@ class DMLWorkflow:
     def run_hql(self):
         raise NotImplementedError('Implemented in subclasses')
 
-class Utilities:
+class Utilities(object):
     '''
     Utility workflow methods
     '''

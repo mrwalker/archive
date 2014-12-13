@@ -13,7 +13,7 @@ from requests.exceptions import ConnectionError
 from qds_sdk.qubole import Qubole as QDS
 from qds_sdk.commands import *
 
-class Backend:
+class Backend(object):
     ABORT_MSG = 'Aborting'
 
     def run_all_sync(self, queries):

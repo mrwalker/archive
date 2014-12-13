@@ -34,7 +34,7 @@ class Statement(Query, DMLWorkflow):
 class InsertOverwrite(Statement):
     def __init__(self, name, external_table, *inputs, **kwargs):
         self.external_table = external_table
-        Statement.__init__(self, name, *inputs, **kwargs)
+        super(InsertOverwrite, self).__init__(name, *inputs, **kwargs)
 
     def __str__(self):
         return 'InsertOverwrite(%s, %s)' % (self.name, self.external_table)

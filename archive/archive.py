@@ -1,8 +1,10 @@
-import collections, itertools
+import collections
+import itertools
 
 from jinja2 import Environment, PackageLoader
 
 from workflow import DDLWorkflow, DMLWorkflow, Utilities
+
 
 class Archive(DDLWorkflow, DMLWorkflow, Utilities):
     '''
@@ -37,8 +39,12 @@ class Archive(DDLWorkflow, DMLWorkflow, Utilities):
         for r in self.queries.values():
             r._stats(**kwargs)
 
-        self.stats['archive']['databases'] = len(self.stats['databases']['unique_databases'])
-        self.stats['archive']['queries'] = len(self.stats['queries']['unique_queries'])
+        self.stats['archive']['databases'] = len(
+            self.stats['databases']['unique_databases']
+        )
+        self.stats['archive']['queries'] = len(
+            self.stats['queries']['unique_queries']
+        )
         self.stats['archive'].pop('current_depth', None)
         return self.stats
 
@@ -47,7 +53,10 @@ class Archive(DDLWorkflow, DMLWorkflow, Utilities):
 
     def add(self, query):
         if query.name in self.queries:
-            raise RuntimeError("Queries must have unique names; Archive already contains query '%s'" % query.name)
+            raise RuntimeError((
+                'Queries must have unique names; '
+                "Archive already contains query '%s'" % query.name
+            ))
 
         self.validate(query)
 
@@ -62,7 +71,12 @@ class Archive(DDLWorkflow, DMLWorkflow, Utilities):
 
     def _validate(self, query):
         if query.name not in self.queries:
-            raise RuntimeError("Query '%s' not in Archive; did you forget to add it?\nCurrently archived: %s" % (query.name, self.queries))
+            raise RuntimeError((
+                "Query '%s' not in Archive; did you forget to add it?\n"
+                'Currently archived: %s' % (
+                    query.name, self.queries
+                )
+            ))
 
         for i in query.inputs:
             self._validate(i)
@@ -79,7 +93,8 @@ class Archive(DDLWorkflow, DMLWorkflow, Utilities):
             query._show(context)
 
         return '''
-Archive: {package} ({tables} tables, {views} views, {external_tables} external tables, and {statements} statements)
+Archive: {package} ({tables} tables, {views} views,
+{external_tables} external tables, and {statements} statements)
 
 Tables:
 {table_list}
@@ -97,10 +112,13 @@ Statements:
             tables=len(context['tables']),
             views=len(context['views']),
             external_tables=len(context['external_tables']),
-            statements= len(context['statements']),
-            table_list= str.join('\n', sorted(context['tables'])),
+            statements=len(context['statements']),
+            table_list=str.join('\n', sorted(context['tables'])),
             view_list=str.join('\n', sorted(context['views'])),
-            external_table_list=str.join('\n', sorted(context['external_tables'])),
+            external_table_list=str.join(
+                '\n',
+                sorted(context['external_tables'])
+            ),
             statement_list=str.join('\n', sorted(context['statements']))
         ).strip(), context
 
@@ -124,17 +142,26 @@ Statements:
 
     def drop_tables_hql(self):
         # Look for tables
-        tables = [t for t in self.queries.values() if hasattr(t, 'view_or_table') and t.view_or_table == 'TABLE']
+        tables = [
+            t for t in self.queries.values()
+            if hasattr(t, 'view_or_table') and t.view_or_table == 'TABLE'
+        ]
 
         # Drop them
-        return str.join('\n', ['DROP TABLE IF EXISTS %s;' % t.qualified_name() for t in tables])
+        return str.join(
+            '\n',
+            ['DROP TABLE IF EXISTS %s;' % t.qualified_name() for t in tables]
+        )
 
     def recover_all(self):
         return self.hive.run_sync(self.recover_all_hql())
 
     def recover_all_hql(self):
         # Look for partitioned external tables
-        tables = [t for t in self.queries.values() if hasattr(t, 'partitioned') and t.partitioned]
+        tables = [
+            t for t in self.queries.values()
+            if hasattr(t, 'partitioned') and t.partitioned
+        ]
 
         # Recover them
         return str.join('\n', [t.recover_partitions_hql() for t in tables])
@@ -147,10 +174,15 @@ Statements:
 
     def _create_all_hql(self, **kwargs):
         created = []
-        return list(itertools.chain(*[query._create_sub_hql(created, **kwargs) for query in self.queries.values()]))
+        return list(itertools.chain(*[
+            query._create_sub_hql(created, **kwargs)
+            for query in self.queries.values()
+        ]))
 
     def run(self):
         return self.hive.run_all_sync(self.run_hql())
 
     def run_hql(self):
-        return list(itertools.chain(*[query.run_hql() for query in self.queries.values()]))
+        return list(itertools.chain(*[
+            query.run_hql() for query in self.queries.values()
+        ]))

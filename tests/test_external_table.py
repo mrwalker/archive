@@ -9,6 +9,7 @@ from archive.hive import Hive
 from archive.archive import Archive
 from archive.relation import ExternalTable
 
+
 class TestExternalTable:
     def setup(self):
         self.archive = Archive('tests', Hive())

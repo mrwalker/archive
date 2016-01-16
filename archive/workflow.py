@@ -5,7 +5,6 @@ Hive to serve as the backend for an automated process for running data
 pipelines.
 '''
 
-import sys
 
 class DDLWorkflow(object):
     '''
@@ -13,14 +12,17 @@ class DDLWorkflow(object):
     '''
     def drop_all(self):
         '''
-        Drops all databases of all members or dependencies.  Be careful with this;
-        it's intended to give you a blank slate for development.
+        Drops all databases of all members or dependencies.  Be careful with
+        this; it's intended to give you a blank slate for development.
         '''
         raise NotImplementedError('Implemented in subclasses')
 
     def drop_all_hql(self):
         unique_databases = self.stats['databases']['unique_databases']
-        return str.join('\n', ['DROP DATABASE IF EXISTS %s CASCADE;' % d for d in unique_databases])
+        return str.join('\n', [
+            'DROP DATABASE IF EXISTS %s CASCADE;' % d
+            for d in unique_databases
+        ])
 
     def drop_tables(self):
         '''
@@ -51,20 +53,22 @@ class DDLWorkflow(object):
     def build_hql(self):
         raise NotImplementedError('Implemented in subclasses')
 
+
 class DMLWorkflow(object):
     '''
     DML workflow methods (currently only select and insert overwrite)
     '''
     def run(self):
         '''
-        Executes the given query synchronously and returns its result or failure.
-        This can be used in conjunction with drop_tables/build to build scheduled
-        data pipelines.
+        Executes the given query synchronously and returns its result or
+        failure.  This can be used in conjunction with drop_tables/build to
+        build scheduled data pipelines.
         '''
         raise NotImplementedError('Implemented in subclasses')
 
     def run_hql(self):
         raise NotImplementedError('Implemented in subclasses')
+
 
 class Utilities(object):
     '''

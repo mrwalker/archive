@@ -1,8 +1,10 @@
 from workflow import Utilities
 
+
 class Query(Utilities):
     '''
-    Archive's notion of a Hive query, Queries form the nodes of the DAG managed by Archive.
+    Archive's notion of a Hive query, Queries form the nodes of the DAG managed
+    by Archive.
     '''
     def __init__(self, name, *inputs, **kwargs):
         self.name = name

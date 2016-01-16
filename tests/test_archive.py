@@ -6,6 +6,7 @@ from archive.hive import Hive
 from archive.archive import Archive
 from archive.relation import ExternalTable, View
 
+
 class TestArchive:
     def setup(self):
         self.archive = Archive('tests', Hive())
@@ -48,7 +49,10 @@ class TestArchive:
 
     def test_graph(self):
         self.archive.add(self.events)
-        assert_equal('Archive: tests\nExternalTable(atomic.events)', self.archive.graph())
+        assert_equal(
+            'Archive: tests\nExternalTable(atomic.events)',
+            self.archive.graph()
+        )
 
     def test_stats(self):
         self.archive.add(self.events)

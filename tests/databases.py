@@ -6,14 +6,16 @@ Until Archive actually supports explicit databses, this is how you define them.
 from __future__ import absolute_import
 
 from archive.relation import ExternalTable, Table, View
-from archive.statement import InsertOverwrite, Select
+from archive.statement import InsertOverwrite
+
 
 def atomic(archive, atomic_database):
-    events = archive.add(ExternalTable(
+    archive.add(ExternalTable(
         atomic_database,
         'events',
         partitioned=True
     ))
+
 
 def inputs(archive, inputs_database):
     '''
@@ -31,7 +33,7 @@ def inputs(archive, inputs_database):
 
     # Writes partitioned_events with support for fully dynamic partitions and
     # appropriate parallelism for bucketing
-    insert_overwrite_partitioned_events = archive.add(InsertOverwrite(
+    archive.add(InsertOverwrite(
         'insert_overwrite_partitioned_events',
         partitioned_events,
         events,
@@ -41,6 +43,7 @@ def inputs(archive, inputs_database):
         }
     ))
 
+
 def events(archive, events_database):
     partitioned_events = archive.lookup('partitioned_events')
 
@@ -49,17 +52,18 @@ def events(archive, events_database):
         'searches',
         partitioned_events
     ))
-    impressions = archive.add(View(
+    archive.add(View(
         events_database,
         'impressions',
         searches
     ))
 
-    result_views = archive.add(View(
+    archive.add(View(
         events_database,
         'result_views',
         partitioned_events
     ))
+
 
 def dynamo(archive, dynamo_database):
     impressions = archive.lookup('impressions')
@@ -75,17 +79,25 @@ def dynamo(archive, dynamo_database):
     dynamo_result_stats = archive.add(ExternalTable(
         dynamo_database,
         'dynamo_result_stats',
-        resources=[
-            {'type': 'JAR', 'path': 's3://paid-qubole/dynamoDB/jars/hadoop-dynamodb-0.0.1-SNAPSHOT-jar-with-dependencies.jar'},
-        ]
+        resources=[{
+            'type': 'JAR',
+            'path': (
+                's3://paid-qubole/dynamoDB/jars/'
+                'hadoop-dynamodb-0.0.1-SNAPSHOT-jar-with-dependencies.jar'
+            ),
+        }]
     ))
-    insert_overwrite_dynamo_result_stats = archive.add(InsertOverwrite(
+    archive.add(InsertOverwrite(
         'insert_overwrite_dynamo_result_stats',
         dynamo_result_stats,
         stage_dynamo_result_stats,
-        resources=[
-            {'type': 'JAR', 'path': 's3://paid-qubole/dynamoDB/jars/hadoop-dynamodb-0.0.1-SNAPSHOT-jar-with-dependencies.jar'},
-        ],
+        resources=[{
+            'type': 'JAR',
+            'path': (
+                's3://paid-qubole/dynamoDB/jars/'
+                'hadoop-dynamodb-0.0.1-SNAPSHOT-jar-with-dependencies.jar'
+            ),
+        }],
         settings={
             'hive.mapred.map.tasks.speculative.execution': 'false',
             'hive.mapred.reduce.tasks.speculative.execution': 'false',

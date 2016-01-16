@@ -3,6 +3,7 @@ import itertools
 from query import Query
 from workflow import DDLWorkflow
 
+
 class Relation(Query, DDLWorkflow):
     def __init__(self, database, name, *inputs, **kwargs):
         self.database = database
@@ -12,7 +13,7 @@ class Relation(Query, DDLWorkflow):
         return '%s.%s' % (self.database, self.name)
 
     def _graph(self, context, **kwargs):
-        if not context['references'].has_key(self.name):
+        if self.name not in context['references']:
             context['references'][self.name] = 0
         context['references'][self.name] += 1
 
@@ -20,10 +21,15 @@ class Relation(Query, DDLWorkflow):
             return '%s%s ...' % ('\t' * context['offset'], self)
         else:
             context['offset'] += 1
-            input_graph = str.join('\n', [i._graph(context, **kwargs) for i in self.inputs]).rstrip()
+            input_graph = str.join(
+                '\n',
+                [i._graph(context, **kwargs) for i in self.inputs]
+            ).rstrip()
             context['offset'] -= 1
 
-            graph_str = '%s%s\n%s' % ('\t' * context['offset'], self, input_graph)
+            graph_str = '%s%s\n%s' % (
+                '\t' * context['offset'], self, input_graph
+            )
             return graph_str.rstrip()
 
     def _stats(self, **kwargs):
@@ -36,12 +42,12 @@ class Relation(Query, DDLWorkflow):
         )
 
         stats['databases']['unique_databases'].add(self.database)
-        if not stats['databases']['references'].has_key(self.database):
+        if self.database not in stats['databases']['references']:
             stats['databases']['references'][self.database] = 0
         stats['databases']['references'][self.database] += 1
 
         stats['queries']['unique_queries'].add(self.name)
-        if not stats['queries']['references'].has_key(self.name):
+        if self.name not in stats['queries']['references']:
             stats['queries']['references'][self.name] = 0
         stats['queries']['references'][self.name] += 1
 
@@ -102,17 +108,22 @@ class Relation(Query, DDLWorkflow):
         if self in created:
             return []
         else:
-            inputs_create_hql = list(itertools.chain(*[i._create_sub_hql(created, **kwargs) for i in self.inputs]))
+            inputs_create_hql = list(itertools.chain(*[
+                i._create_sub_hql(created, **kwargs) for i in self.inputs
+            ]))
             create_hql = self._create_hql(created)
 
             create_tables_only = kwargs.get('create_tables_only', False)
             if not create_tables_only:
                 inputs_create_hql.append(create_hql)
-            elif create_tables_only and hasattr(self, 'view_or_table') and self.view_or_table == 'TABLE':
+            elif create_tables_only and \
+                    hasattr(self, 'view_or_table') and \
+                    self.view_or_table == 'TABLE':
                 inputs_create_hql.append(create_hql)
 
             created.append(self)
             return inputs_create_hql
+
 
 class ExternalTable(Relation):
     def __init__(self, database, name, *inputs, **kwargs):
@@ -130,10 +141,11 @@ class ExternalTable(Relation):
 
     def recover_partitions_hql(self):
         if self.partitioned:
-            return 'ALTER TABLE `{database}.{name}` RECOVER PARTITIONS;'.format(
-                database=self.database,
-                name=self.name,
-            )
+            return \
+                'ALTER TABLE `{database}.{name}` RECOVER PARTITIONS;'.format(
+                    database=self.database,
+                    name=self.name,
+                )
         else:
             return ''
 
@@ -152,6 +164,7 @@ CREATE EXTERNAL TABLE IF NOT EXISTS {database}.{name}
             hql=self.hql(),
             recover_partitions_hql=self.recover_partitions_hql()
         ).strip()
+
 
 class ViewOrTable(Relation):
     def __init__(self, database, name, view_or_table, *inputs, **kwargs):
@@ -191,9 +204,11 @@ CREATE {view_or_table} IF NOT EXISTS {database}.{name} AS
     def __str__(self):
         return '%s(%s)' % (self.view_or_table.title(), self.qualified_name())
 
+
 class Table(ViewOrTable):
     def __init__(self, database, name, *inputs, **kwargs):
         super(Table, self).__init__(database, name, 'TABLE', *inputs, **kwargs)
+
 
 class View(ViewOrTable):
     def __init__(self, database, name, *inputs, **kwargs):

@@ -3,15 +3,16 @@ Archive's API to Hive
 '''
 
 import logging
-logging.basicConfig(level = logging.INFO)
-logger = logging.getLogger(__name__)
-
 import time
 
 from requests.exceptions import ConnectionError
 
 from qds_sdk.qubole import Qubole as QDS
 from qds_sdk.commands import *
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 
 class Backend(object):
     ABORT_MSG = 'Aborting'
@@ -71,71 +72,98 @@ class Backend(object):
                any([-1 != hql.find('INSERT ') for hql in hqls]) or \
                any([-1 != hql.find('CREATE ') for hql in hqls]) or \
                any([-1 != hql.find('ALTER ') for hql in hqls]):
-                sys.stdout.write('This command will modify the database, are you sure you want to continue [y/n]? ')
+                sys.stdout.write((
+                    'This command will modify the database, '
+                    'are you sure you want to continue [y/n]? '
+                ))
                 choice = raw_input().lower()
                 return choice == 'y'
 
         return True
 
+
 class Hive(Backend):
     def set_token(self, api_token):
         pass
 
-    def run_sync(self, query, log_limit = 100):
+    def run_sync(self, query, log_limit=100):
         if self._warn(query):
-            logger.info("Running query on dummy backend: '%s...'" % query[0:log_limit])
+            logger.info(
+                "Running query on dummy backend: '%s...'" % query[0:log_limit]
+            )
             return None
         else:
             return self.ABORT_MSG
 
-    def run_async(self, query, log_limit = 100):
+    def run_async(self, query, log_limit=100):
         if self._warn(query):
-            logger.info("Running query on dummy backend: '%s...'" % query[0:log_limit])
+            logger.info(
+                "Running query on dummy backend: '%s...'" % query[0:log_limit]
+            )
             return None
         else:
             return self.ABORT_MSG
+
 
 class Qubole(Hive):
     def set_token(self, api_token):
-        QDS.configure(api_token = api_token)
+        QDS.configure(api_token=api_token)
 
-    def backoff_poll_interval(self, multiple = 2):
-        QDS.configure(QDS.api_token, poll_interval = QDS.poll_interval * multiple)
+    def backoff_poll_interval(self, multiple=2):
+        QDS.configure(QDS.api_token, poll_interval=QDS.poll_interval * multiple)
 
-    def poll_with_retries(self, hive_command, retries = 3):
+    def poll_with_retries(self, hive_command, retries=3):
         '''
         A temporary work-around for connection failures while polling QDS.  See
-        qds_sdk.commands.Command#run for the original source of this code, prior to
-        retries with polling interval backoff.
+        qds_sdk.commands.Command#run for the original source of this code,
+        prior to retries with polling interval backoff.
         '''
         try:
             while not HiveCommand.is_done(hive_command.status):
                 time.sleep(QDS.poll_interval)
                 hive_command = HiveCommand.find(hive_command.id)
 
-            logger.info('Ran job: %s, Status: %s' % (hive_command.id, hive_command.status))
+            logger.info('Ran job: %s, Status: %s' % (
+                hive_command.id,
+                hive_command.status
+            ))
 
             # Notify caller if the command wasn't successful
             if not HiveCommand.is_success(hive_command.status):
                 logger.error(hive_command.get_log())
-                raise RuntimeError("Job %s failed or was cancelled, Status: %s\nCommand: '%s'" % (hive_command.id, hive_command.status, hive_command))
+                raise RuntimeError((
+                    'Job %s failed or was cancelled, '
+                    "Status: %s\nCommand: '%s'" % (
+                        hive_command.id,
+                        hive_command.status,
+                        hive_command
+                    )
+                ))
 
             return hive_command
         except ConnectionError as error:
             if retries > 0:
                 self.backoff_poll_interval()
-                logger.error('Received ConnectionError: %s, Retrying with polling interval: %s (%s remaining)' % (
-                    error,
-                    QDS.poll_interval,
-                    retries
+                logger.error((
+                    'Received ConnectionError: %s, '
+                    'Retrying with polling interval: %s (%s remaining)' % (
+                        error,
+                        QDS.poll_interval,
+                        retries
+                    )
                 ))
-                return self.poll_with_retries(hive_command, retries = retries - 1)
+                return self.poll_with_retries(
+                    hive_command,
+                    retries=retries - 1
+                )
             else:
                 logger.exception('Polling retries exhausted')
 
-    def run_sync(self, query, log_limit = 100, retries = 3):
+    def run_sync(self, query, log_limit=100, retries=3):
         if self._warn(query):
-            logger.info("Running query on Qubole backend: '%s...'" % query[0:log_limit])
+            logger.info(
+                "Running query on Qubole backend: '%s...'" % query[0:log_limit]
+            )
 
             kwargs = {'query': query}
             if 'label' in self.args:
@@ -146,9 +174,11 @@ class Qubole(Hive):
         else:
             return self.ABORT_MSG
 
-    def run_async(self, query, log_limit = 100):
+    def run_async(self, query, log_limit=100):
         if self._warn(query):
-            logger.info("Running query on Qubole backend: '%s...'" % query[0:log_limit])
+            logger.info(
+                "Running query on Qubole backend: '%s...'" % query[0:log_limit]
+            )
 
             kwargs = {'query': query}
             if 'label' in self.args:
@@ -156,7 +186,10 @@ class Qubole(Hive):
 
             hive_command = HiveCommand.create(**kwargs)
 
-            logger.info('Started job: %s, Status: %s' % (hive_command.id, hive_command.status))
+            logger.info('Started job: %s, Status: %s' % (
+                hive_command.id,
+                hive_command.status
+            ))
             return hive_command
         else:
             return self.ABORT_MSG
@@ -167,7 +200,7 @@ if __name__ == '__main__':
 
     from argparse import Namespace
     args = Namespace()
-    #args.label = 'prod'
+    # args.label = 'prod'
     hive.args = args
 
     hive_job = hive.run_sync('SHOW TABLES;')

@@ -9,10 +9,10 @@ import tests.databases as databases
 
 ARCHIVE_ENV = os.environ['ARCHIVE_ENV']
 if ARCHIVE_ENV == 'prod':
-  hive = Qubole()
-  hive.set_token(os.environ['QUBOLE_TOKEN'])
+    hive = Qubole()
+    hive.set_token(os.environ['QUBOLE_TOKEN'])
 else:
-  hive = Hive()
+    hive = Hive()
 archive = Archive('tests', hive)
 
 atomic_database = 'atomic'
